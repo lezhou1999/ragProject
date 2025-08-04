@@ -12,3 +12,7 @@ __pycache__/
 # Node.js 依赖
 node_modules/
 dist/
+
+
+__pycache__/
+*.pyc
