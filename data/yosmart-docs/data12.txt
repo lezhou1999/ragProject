@@ -1,0 +1,376 @@
+=== CHUNK: DoorSensor.getState / getActivityLogs / setAttributes ===
+
+Module: DoorSensor
+
+1. Method: DoorSensor.getState  
+Description: Get the current state of the door sensor  
+Use case: Query whether the door is open or closed, check battery, version, and delay info
+
+Request (BDDP):
+- method (String, Required): "DoorSensor.getState"
+- targetDevice (String, Required): DeviceId of the Sensor
+- token (String, Required): Network token of the Sensor
+
+Response (BUDP):
+- data.online (Boolean, Required): Whether the device is online
+- data.state.state (String, Required): Device state ["closed", "open", "error"]
+- data.state.battery (String, Required): Battery level (0 = empty, 4 = full)
+- data.state.openRemindDelay (Integer, Optional): Delay in seconds before triggering open reminder
+- data.state.alertInterval (Integer, Optional): Continuous alert interval (minutes)
+- data.state.delay (Float, Required): Device delay time (seconds)
+- data.state.version (String, Required): Firmware version
+- data.state.stateChangedAt (String, Required): Last time state changed
+- data.reportAt (Date, Required): Time of data report
+- data.deviceId (String, Required): Device ID
+
+---
+
+2. Method: DoorSensor.getActivityLogs  
+Description: Retrieve activity logs of the device  
+Use case: View door open/close history (requires permission: "DEVICE.HISTORICAL_DATA.READ")
+
+Request (BDDP):
+- method (String, Required): "DoorSensor.getActivityLogs"
+- targetDevice (String, Required): DeviceId of the Sensor
+- token (String, Required): Network token
+- params.search (Object, Optional): Search parameters
+  - params.search.startDate (String, Required): Start date ("YYYY-MM-DD")
+  - params.search.endDate (String, Required): End date ("YYYY-MM-DD")
+- params.retrievalKey (String, Optional): Key for paginated data retrieval
+
+Response (BUDP):
+- data.logs (Array, Required): List of activity log records
+  - data.logs[*].id (Array, Required): Record ID
+  - data.logs[*].time (Date, Required): Time of the event
+  - data.logs[*].data (Object, Required): Data content
+- data.retrievalKeys (Object, Optional): Pagination keys
+  - data.retrievalKeys.next (Object, Required): Key to fetch next page
+
+---
+
+3. Method: DoorSensor.setAttributes  
+Description: Set attribute configurations for the sensor  
+Use case: Configure open reminder and alert interval
+
+Request (BDDP):
+- method (String, Required): "DoorSensor.setAttributes"
+- targetDevice (String, Required): DeviceId of the Sensor
+- token (String, Required): Network token
+- params.openRemindDelay (Integer, Optional): Open reminder delay [10–64800 seconds]
+- params.alertInterval (Integer, Optional): Alert interval [0–120 minutes]
+
+Response (BUDP):
+- params.openRemindDelay (Integer, Required): Confirmed open reminder setting
+- params.alertInterval (Integer, Required): Confirmed alert interval setting
+
+
+=== CHUNK: Finger.toggle ===
+Module: Finger
+
+1. Method: Finger.toggle  
+Description: Trigger a single press using the Finger device  
+Use case: Simulate a physical button press (e.g., garage switch).  
+Caution: Please confirm the current garage door state using the Garage Door Sensor before calling this method to avoid safety issues.
+
+Request (BDDP):
+- method (String, Required): "Finger.toggle"
+- targetDevice (String, Required): The DeviceId of the Finger device to be controlled
+- token (String, Required): Network token for the Finger device (you can retrieve it from the platform)
+
+Response (BUDP):
+- None (no response payload defined for this operation)
+
+
+=== CHUNK:  GarageDoor.toggle  ===
+
+Module: GarageDoor
+
+1. Method: GarageDoor.toggle  
+Description: Toggle (open or close) the garage door using the smart controller  
+Use case: Remotely trigger garage door operation  
+Caution: Ensure the garage door's current state using a Garage Door Sensor before calling this method to prevent potential safety issues.
+
+Request (BDDP):
+- method (String, Required): "GarageDoor.toggle"
+- targetDevice (String, Required): The DeviceId of the GarageDoor device
+- token (String, Required): Network token for the GarageDoor device (you can retrieve it from the platform)
+
+Response (BUDP):
+- None (no response payload defined for this operation)
+
+=== CHUNK: Hub.getState and Hub.setWiFi ===
+
+Module: Hub
+
+1. Method: Hub.getState  
+Description: Retrieve the current status of the Hub, including Wi-Fi and Ethernet details  
+Use case: Check whether the hub is online, current firmware version, and network configuration
+
+Request (BDDP):
+- method (String, Required): "Hub.getState"
+- targetDevice (String, Required): DeviceId of the Hub device
+- token (String, Required): Network token for the Hub
+
+Response (BUDP):
+- data.version (String, Required): Current firmware version of the Hub
+- data.wifi.enable (Boolean, Required): Whether Wi-Fi is connected
+- data.wifi.ssid (String, Required): Connected Wi-Fi SSID
+- data.wifi.ip (String, Required): Hub's IP on Wi-Fi
+- data.wifi.gateway (String, Required): Wi-Fi Gateway IP
+- data.wifi.mask (String, Required): Wi-Fi Subnet Mask
+- data.eth.enable (Boolean, Required): Whether Ethernet is connected
+- data.eth.ip (String, Required): Hub's IP on Ethernet
+- data.eth.gateway (String, Required): Ethernet Gateway IP
+- data.eth.mask (String, Required): Ethernet Subnet Mask
+
+---
+
+2. Method: Hub.setWiFi  
+Description: Set Wi-Fi configuration while the Hub is online  
+Use case: Remotely connect the Hub to a specified Wi-Fi network  
+Note: For offline setup, use the designated local setup method
+
+Request (BDDP):
+- method (String, Required): "Hub.setWiFi"
+- targetDevice (String, Required): DeviceId of the Hub
+- token (String, Required): Network token for the Hub
+- params.ssid (String, Required): Target Wi-Fi SSID
+- params.password (String, Required): Wi-Fi password
+
+Response (BUDP):
+- None (no specific response fields defined for this operation)
+
+
+===CHUNK:IPCamera.getState / setProperties ===
+Module: IPCamera
+
+1. Method: IPCamera.getState  
+Description: Get the full current state of the IP Camera  
+Use case: Query device status, connectivity, recording mode, sensors, SD card, and other configurations
+
+Request (BDDP):
+- method (String, Required): "IPCamera.getState"
+- targetDevice (String, Required): DeviceId of the IP Camera
+- token (String, Required): Network token of the device
+
+Response (BUDP):
+- data.online (Boolean, Required): Device online status
+- data.wifi.enable (String, Required): Whether Wi-Fi is connected
+- data.wifi.ip (String, Required): IP address via Wi-Fi
+- data.wifi.mask (String, Required): Wi-Fi subnet mask
+- data.wifi.gateway (String, Optional): Wi-Fi gateway
+- data.wifi.mac (String, Optional): Wi-Fi MAC address
+- data.wifi.rssi (Integer, Required): Wi-Fi signal strength
+- data.volume (Integer, Required): Speaker volume [0–5]
+- data.recordMode (String, Required): Recording mode ["full-time", "alarm", "off"]
+- data.indicatorLight (String, Required): Indicator light ["on", "off"]
+- data.voicePrompts (String, Required): Voice prompt ["on", "off"]
+- data.maxManualRecordTime (Integer, Required): Max manual recording time (minutes)
+- data.nightVision (String, Required): Night vision ["on", "off", "auto"]
+- data.soundDetection.enable (Boolean, Required): Whether sound detection is on
+- data.soundDetection.level (Integer, Required): Sound detection sensitivity [0–5]
+- data.motionDetection.enable (Boolean, Required): Motion detection on/off
+- data.motionDetection.level (Integer, Required): Motion detection sensitivity [0–4]
+- data.storage.total (Integer, Required): SD card total capacity (MB)
+- data.storage.free (Integer, Required): SD card free space (MB)
+- data.storage.sdFormat (String, Required): SD card format
+- data.storage.rwMode (String, Required): Read/write mode
+- data.soundEnable (Boolean, Required): Whether sound is enabled
+- data.privacyMode (String, Required): Privacy mode ["on", "off"]
+- data.version (String, Required): Firmware version
+- data.tz (Integer, Required): Timezone
+
+---
+
+2. Method: IPCamera.setProperties  
+Description: Set various device parameters  
+Use case: Modify sound, light, detection, recording options
+
+Request (BDDP):
+- method (String, Required): "IPCamera.setProperties"
+- targetDevice (String, Required): DeviceId of the device
+- token (String, Required): Network token
+- params.volume (Integer, Optional): Speaker volume [0–5]
+- params.indicatorLight (String, Optional): Indicator light ["on", "off"]
+- params.voicePrompts (String, Optional): Voice prompt ["on", "off"]
+- params.maxManualRecordTime (Integer, Optional): Max recording duration (minutes)
+- params.nightVision (String, Optional): Night vision mode ["on", "off", "auto"]
+- params.soundDetection.enable (Boolean, Optional): Enable sound detection
+- params.soundDetection.level (Integer, Optional): Sound detection sensitivity [0–5]
+- params.motionDetection.enable (Boolean, Optional): Enable motion detection
+- params.motionDetection.level (Integer, Optional): Motion detection sensitivity [0–4]
+- params.soundEnable (Boolean, Optional): Enable sound
+
+Response (BUDP):
+- data.success (Boolean, Required): Whether properties were set successfully
+- data.code (Integer, Required): 200 if success
+
+=== CHUNK:IPCamera.startRecording / stopRecording / Callbacks  ===
+
+Module: IPCamera
+
+3. Method: IPCamera.startRecording  
+Description: Start local recording  
+Use case: Manually initiate local video recording on the camera
+
+Request (BDDP):
+- method (String, Required): "IPCamera.startRecording"
+- targetDevice (String, Required): DeviceId of the device
+- token (String, Required): Network token
+- params.audioEnable (Boolean, Optional): Whether to record audio (default true)
+- params.duration (Integer, Optional): Duration of recording in minutes
+
+Response (BUDP):
+- data.success (Boolean, Required): Whether recording started
+- data.code (Integer, Required): 200 if success
+
+---
+
+4. Method: IPCamera.stopRecording  
+Description: Stop ongoing local recording  
+Use case: Manually end local video recording
+
+Request (BDDP):
+- method (String, Required): "IPCamera.stopRecording"
+- targetDevice (String, Required): DeviceId of the device
+- token (String, Required): Network token
+
+Response (BUDP):
+- data.success (Boolean, Required): Whether recording has stopped
+- data.code (Integer, Required): 200 if success
+
+---
+
+5. Callbacks  
+Description: IPCamera status changes can be reported via MQTT or HTTP Callback  
+Use case: Receive real-time updates about motion detection, recording state, or device connectivity
+
+Supported delivery methods:
+- MQTT report topic
+- HTTP Callback API (via POST request)
+
+Possible reported changes include:
+- Motion/sound detection events
+- Recording start/stop
+- Network status changes
+- Storage warnings or errors
+
+===CHUNK:  InfraredRemoter.getState / learn / send / setTimeZone ===
+
+Module: InfraredRemoter
+
+1. Method: InfraredRemoter.getState  
+Description: Get the current state of the Infrared Remoter  
+Use case: Check battery level, firmware version, timezone, and learned keys
+
+Request (BDDP):
+- method (String, Required): "InfraredRemoter.getState"
+- targetDevice (String, Required): DeviceId of the Infrared Remoter
+- token (String, Required): Network token
+
+Response (BUDP):
+- data.battery (Integer, Required): Battery level [1 (empty) – 4 (full)]
+- data.keys (Boolean[64], Required): Learning status of 64 keys (true = learned)
+- data.version (String, Required): Firmware version
+- data.tz (Integer, Required): Timezone
+
+---
+
+2. Method: InfraredRemoter.learn  
+Description: Learn an infrared signal for a specific key  
+Use case: Capture IR command to store in a key slot
+
+Request (BDDP):
+- method (String, Required): "InfraredRemoter.learn"
+- targetDevice (String, Required): DeviceId of the Infrared Remoter
+- token (String, Required): Network token
+- params.key (Integer, Required): Key index to learn [0–63]
+
+Response (BUDP):
+- data.success (Boolean, Required): Whether learning succeeded
+- data.errorCode (String, Optional): Error reason if failed  
+  - "error": Unknown error  
+  - "keyError": Invalid key  
+  - "started": Already learning  
+  - "timeout": Timeout
+
+---
+=== CHUNk: InfraredRemoter.send / setTimeZone ===
+
+Module: InfraredRemoter
+
+3. Method: InfraredRemoter.send  
+Description: Send a learned infrared code  
+Use case: Remotely trigger an IR command from a specified key
+
+Request (BDDP):
+- method (String, Required): "InfraredRemoter.send"
+- targetDevice (String, Required): DeviceId of the Infrared Remoter
+- token (String, Required): Network token
+- params.key (Integer, Required): Key index to send [0–63]
+
+Response (BUDP):
+- data.success (Boolean, Required): Whether the IR command was sent successfully
+- data.errorCode (String, Optional): Error reason if failed  
+  - "notLearn": Key not learned  
+  - "keyError": Invalid key
+
+---
+
+4. Method: InfraredRemoter.setTimeZone  
+Description: Set the timezone of the Infrared Remoter  
+Use case: Required if schedules are to be used
+
+Request (BDDP):
+- method (String, Required): "InfraredRemoter.setTimeZone"
+- targetDevice (String, Required): DeviceId of the Infrared Remoter
+- token (String, Required): Network token
+- params.tz (Integer, Required): Target timezone [-12 to +12]
+
+Response (BUDP):
+- data.success (Boolean, Required): Whether timezone was set successfully
+- data.errorCode (String, Optional): Error reason (same as `send` if key is invalid)
+
+===CHUNK:  InfraredRemoter.setSchedule / getSchedules ===
+
+Module: InfraredRemoter
+
+5. Method: InfraredRemoter.setSchedule  
+Description: Create or update schedules to send IR commands automatically  
+Use case: Automate actions (e.g., turn on AC at 9:00 every day)
+
+Request (BDDP):
+- method (String, Required): "InfraredRemoter.setSchedule"
+- targetDevice (String, Required): DeviceId of the Infrared Remoter
+- token (String, Required): Network token
+- params.sches[index].* (Object, Required): Schedule definitions (up to 10)
+  - isValid (Boolean, Required): Whether the schedule is active
+  - week (Integer, Required): Bitmask of active weekdays (bit 0 = Sunday ... bit 6 = Saturday). e.g., 65 = Sun & Sat
+  - time (String, Required): Time in "HH:mm" format
+  - key (String, Required): Key (0–63) to trigger when schedule fires
+
+Response (BUDP):
+- data.sches[index].* (Object, Required): Echo of schedule settings
+  - isValid (Boolean, Required)
+  - week (Integer, Required)
+  - time (String, Required)
+  - key (String, Required)
+
+---
+
+6. Method: InfraredRemoter.getSchedules  
+Description: Retrieve all configured schedules  
+Use case: View current automatic IR task configurations
+
+Request (BDDP):
+- method (String, Required): "InfraredRemoter.getSchedules"
+- targetDevice (String, Required): DeviceId of the Infrared Remoter
+- token (String, Required): Network token
+
+Response (BUDP):
+- data.sches[index].* (Object, Required): List of schedules
+  - isValid (Boolean, Required): Whether the schedule is active
+  - week (Integer, Required): Bitmask of weekdays
+  - time (String, Required): "HH:mm" format
+  - key (String, Required): Key to trigger
+

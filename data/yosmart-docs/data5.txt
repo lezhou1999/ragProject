@@ -1,0 +1,23 @@
+
+=== CHUNK: Authentication Credentials in YoSmart API ===
+Authentication Credentials in YoSmart API
+
+There are two main types of authentication credentials used in the YoSmart API: CSID and UAC.
+
+1. CSID (Customer Service ID)
+
+CSID is an authentication credential issued by YoSmart to its business partners. It is used for mass access and control of YoSmart devices. Business partners can use CSID to manage a large number of devices, including requesting access to devices from other users.
+
+- CSID: Unique identifier for the customer
+- CSSecKey: Secret key associated with the CSID
+
+To obtain a CSID, business users must contact YoSmart through the appropriate channel.
+
+2. UAC (User Access Credential)
+
+UAC is an access credential created by individual users in the YoLink app. It is used to authorize third-party applications to access the user's account and associated devices. UAC is suitable for personal use and small-scale access.
+
+- UAID: Unique ID of the UAC
+- Secret Key: Secret key associated with the UAC
+
+Both CSID and UAC are used to request access tokens, which are then used to authorize API requests.

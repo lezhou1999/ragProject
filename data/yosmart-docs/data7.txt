@@ -1,0 +1,103 @@
+=== CHUNK: Open API V1 Overview and Limitation ===
+
+YoSmart Open API V1 Overview
+
+YoSmart Open API V1 is the earlier version of the interface, and currently only supports authentication using CSID (Customer Service ID). This version does not support UAC-based authorization.
+
+Caution: Open API V1 is only available for business partners with a valid CSID and CSSecKey issued by YoSmart.
+
+
+
+=== CHUNK: HTTP Interface for Open API V1 ===
+
+Open API V1 – HTTP Interface
+
+Endpoint:
+POST /openApi
+
+Request Headers:
+- Content-Type: application/json
+- KTT-YS-BRAND: "yolink" (required)
+- YS-CSID: ${CSID} (required)
+- YS-SEC: MD5(Body.toString() + CSSecKey) (required for security)
+
+Request Body:
+- Must be a valid JSON-formatted BDDP (Basic Downlink Data Packet)
+
+Response Body:
+- The server responds with a BUDP (Basic Uplink Data Packet)
+
+The MD5-based signature in YS-SEC ensures integrity and authentication of the request body using the CSID secret key.
+
+
+
+=== CHUNK: HTTP Callback Mechanism ===
+
+Open API V1 – HTTP Callback
+
+You can configure a server to receive device event data via HTTP POST callbacks. The callback URL must be confirmed and approved by YoSmart, and can be set via API on the Test Server.
+
+Callback Request:
+- POST to ${Callback_URL}
+
+Request Headers:
+- Content-Type: application/json
+- KTT-CSID: ${CSID} (required)
+- KTT-SEC: MD5(Body.toString() + CSSecKey) (not currently validated but may be in future)
+
+Request Body:
+- JSON formatted BUDP packet, containing:
+  - type: Report Type
+  - deviceId: ID of the reporting device
+  - hubId: ID of the gateway/hub device
+
+The callback allows devices to push data such as status updates or alerts to third-party servers.
+
+
+
+
+=== CHUNK: MQTT Interface for Real-Time Communication ===
+
+Open API V1 – MQTT Interface
+
+YoSmart supports both TCP and WebSocket-based MQTT connections.
+
+MQTT Connection Details:
+- Host: ${API_Host}
+- TCP Port: 8003
+- WebSocket Port: 8004
+
+Authentication:
+- Username: ${CSID}
+- Password: MD5(CSSecKey)
+- Client ID: A general unique UUID
+
+Authorized Topics:
+- {CustomerName}/** – allows both publish and subscribe operations
+
+Topic Descriptions:
+- {CustomerName}/**/request: Used to send messages in BDDP format
+- {CustomerName}/**/response: Receives corresponding BUDP response
+- {CustomerName}/**/report: Devices push events such as alerts and status changes here
+
+This MQTT interface provides real-time bidirectional communication between the platform and YoSmart devices.
+
+
+
+
+
+=== CHUNK: OAuth2.0 Support ===
+
+Open API V1 – OAuth2.0 Support
+
+YoSmart provides OAuth2.0 protocol to synchronize YoLink account information. OAuth2.0 is an open standard protocol used for secure authorization.
+
+Endpoints:
+- Authorization URL: /oauth/v2/authorization.htm
+- Access Token URL: /oauth/v2/getAccessToken.api
+
+Authentication:
+- ClientId: ${CSID}
+- ClientSecret: ${CSSecKey}
+
+OAuth2 allows secure access to user-related information in scenarios where a CSID is also used for business-level authentication.

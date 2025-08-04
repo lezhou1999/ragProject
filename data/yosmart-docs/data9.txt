@@ -1,0 +1,128 @@
+=== CHUNK: Local API Overall Overview ===
+
+Local API Overview for YoSmart Local Hub
+
+Caution: The Local API is only available for use with YoSmart Local Hubs. It cannot be used to access cloud-based YoLink devices.
+
+Base URL for all API calls:
+SVR_URL = http://{Your Local Hub IP Address}:1080
+
+Client credentials (ClientId and ClientSecret) must be obtained in the YoLink App via:
+[Local Hub] -> [Local Network] -> [Integrations] -> [Local API]
+
+HTTP API Access:
+
+- Endpoint: POST /open/yolink/v2/api
+- Headers:
+  - Content-Type: application/json
+  - Authorization: Bearer ${access_token}
+- Body: Follows the BDDP (Basic Downlink Data Packet) format
+- Response: Follows the BUDP (Basic Uplink Data Packet) format
+
+Tip: Always verify that your access_token has not expired before making a request. It is recommended to use refresh_token to acquire a new access_token when needed.
+
+MQTT API Access:
+
+- Host: {Your Local Hub IP}
+- Port: 18080
+- Auth:
+  - Username: ${ClientId}
+  - Password: ${ClientSecret or AccessToken}
+  - Client ID: Unique UUID
+- Topics:
+  - ylsubnet/${Sub-Net Id}/+/report – Receive device events like StatusChange, Alert, Report
+  - ylsubnet/${Sub-Net Id}/**/request – Publish commands (BDDP)
+  - ylsubnet/${Sub-Net Id}/**/response – Subscribe to responses (BUDP)
+
+Sub-Net Id can be found in the YoLink App under:
+[Local Hub] -> [Local Network] -> [General]
+
+OAuth2.0 Authentication:
+
+- Token URL: ${SVR_URL}/open/yolink/token
+
+To get an access_token:
+curl -X POST -d "grant_type=client_credentials&client_id=${ClientId}&client_secret=${ClientSecret}" ${SVR_URL}/open/yolink/token
+
+To refresh an access_token:
+curl -X POST -d "grant_type=refresh_token&client_id=${ClientId}&refresh_token=${Refresh Token}" ${SVR_URL}/open/yolink/token
+
+Note: Last updated on 3/21/2025 by Matrix.
+
+=== CHUNK: Method: Home.getDeviceList ===
+
+Method: Home.getDeviceList
+
+This method retrieves the list of devices connected to a YoSmart Local Hub. It is used to obtain device identifiers and network tokens required for further interaction with the devices.
+
+Request Format (BDDP):
+- method: "Home.getDeviceList"
+
+Response Format (BUDP):
+
+The response includes a list of devices, each with the following fields:
+
+- data.devices[*].deviceId (String, Required): The unique ID of the device.
+- data.devices[*].deviceUUID (String, Required): The device's global UUID.
+- data.devices[*].token (String, Required): The network token used for sending control commands to the device.
+- data.devices[*].name (String, Required): The name of the device (e.g., "YoLink Hub").
+- data.devices[*].type (String, Required): The device type (e.g., "Hub", "DoorSensor"). This determines which set of methods (e.g., Hub.*, DoorSensor.*) are applicable to the device.
+
+This method is essential for discovering devices and preparing to send targeted API commands through the Local API.
+
+
+=== CHUNK: Error Codes in YoSmart API ===
+YoSmart API Error Codes
+
+This is a list of error codes returned by the YoSmart API in BUDP responses. Each error code indicates a specific failure scenario in communication, authentication, device control, or request format.
+
+General Hub Errors:
+- 000101: Can't connect to Hub
+- 000102: The hub cannot respond to this command
+- 000103: Token is invalid
+- 000104: Hub token is invalid
+- 000105: redirect_uri can't be null
+- 000106: client_id is invalid
+
+Device Communication Errors:
+- 000201: Cannot connect to the device
+- 000202: The device cannot respond to this command
+- 000203: Cannot connect to the device
+
+Service Availability Errors:
+- 010000: Service is not available, try again later
+- 010001: Internal connection is not available, try again later
+
+Authorization and Security Errors:
+- 010101: Invalid request: CSID is invalid
+- 010102: Invalid request: SecKey is invalid
+- 010103: Invalid request: Authorization is invalid
+- 010104: Invalid request: The token is expired
+
+Invalid Data Packet Errors:
+- 010200: Invalid data packet: params is not valid
+- 010201: Invalid data packet: time cannot be null
+- 010202: Invalid data packet: method cannot be null
+- 010203: Invalid data packet: method is not supported
+- 010204: Invalid data packet
+
+Access Control Errors:
+- 010300: This interface is restricted to access
+- 010301: Access denied due to limits reached, please retry later
+
+Device Binding and Status Errors:
+- 020100: The device is already bound by another user
+- 020101: The device does not exist
+- 020102: Device mask error
+- 020103: The device is not supported
+- 020104: Device is busy, try again later
+- 020105: Unable to retrieve device
+- 020201: No devices were searched
+
+Data Errors:
+- 030101: No data found
+
+Unknown Errors:
+- 999999: Unknown error, please report it to yaochi@yosmart.com
+
+Refer to this list when interpreting response codes from the YoSmart API to diagnose and resolve request failures.

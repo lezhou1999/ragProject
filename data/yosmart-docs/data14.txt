@@ -1,0 +1,421 @@
+=== CHUNK: Manipulator.getState/setState ===
+
+Module: Manipulator
+
+1. Method: Manipulator.getState  
+Description: Get the current state of the Manipulator  
+Use case: Query device status, delay info, and version
+
+Request (BDDP):
+- method (String, Required): "Manipulator.getState"
+- targetDevice (String, Required): DeviceId of the Manipulator
+- token (String, Required): Network token
+
+Response (BUDP):
+- data.state (String, Required): Device state ["closed", "open"]
+- data.delay.on (Integer, Optional): Delay ON time (minutes), 0 = off
+- data.delay.off (Integer, Optional): Delay OFF time (minutes), 0 = off
+- data.openRemind (Integer, Optional): Reminder delay if left open (0 = disabled)
+- data.version (String, Required): Firmware version
+- data.tz (Integer, Required): Timezone [-12 ~ 12]
+
+
+2. Method: Manipulator.setState  
+Description: Set the ON/OFF state of the Manipulator  
+Use case: Remotely control the actuator to open or close
+
+Request (BDDP):
+- method (String, Required): "Manipulator.setState"
+- targetDevice (String, Required): DeviceId of the Manipulator
+- token (String, Required): Network token
+- params.state (String, Required): Target state ["close", "open"]
+
+Response (BUDP):
+- data.state (String, Required): Updated state ["closed", "open"]
+
+
+
+=== CHUNK:Manipulator.setDelay/getSchedules ===
+Module: Manipulator
+
+3. Method: Manipulator.setDelay  
+Description: Set delay times for ON/OFF actions  
+Use case: Configure delayed activation or deactivation
+
+Request (BDDP):
+- method (String, Required): "Manipulator.setDelay"
+- targetDevice (String, Required): DeviceId of the Manipulator
+- token (String, Required): Network token
+- params.delayOn (Integer, Optional): Delay ON in minutes (0 = cancel)
+- params.delayOff (Integer, Optional): Delay OFF in minutes (0 = cancel)
+
+Response (BUDP):
+- data.delay.on (Integer, Optional): Remaining delay ON
+- data.delay.off (Integer, Optional): Remaining delay OFF
+
+Module: Manipulator
+
+4. Method: Manipulator.getSchedules  
+Description: Get list of scheduled ON/OFF tasks  
+Use case: Retrieve automation configurations
+
+Request (BDDP):
+- method (String, Required): "Manipulator.getSchedules"
+- targetDevice (String, Required): DeviceId of the Manipulator
+- token (String, Required): Network token
+
+Response (BUDP):
+- data[index].isValid (Boolean, Required): Whether this schedule is enabled
+- data[index].index (Integer, Required): Schedule ID
+- data[index].on (String, Optional): Time to turn ON (HH:mm)
+- data[index].off (String, Optional): Time to turn OFF (HH:mm)
+- data[index].week (Integer, Required): Bitmask for days (Sun–Sat)
+
+
+
+=== CHUNK: Manipulator.setSchedules/getVersion ===
+
+Module: Manipulator
+
+5. Method: Manipulator.setSchedules  
+Description: Set up to 6 schedules for automatic ON/OFF  
+Use case: Schedule manipulator to run at specific times
+
+Request (BDDP):
+- method (String, Required): "Manipulator.setSchedules"
+- targetDevice (String, Required): DeviceId of the Manipulator
+- token (String, Required): Network token
+- params.sches (Array<Schedule>, Required): Map<int, Schedule>
+  - isValid (Boolean): Whether enabled
+  - index (Integer): Schedule ID
+  - on (String): ON time (HH:mm)
+  - off (String): OFF time (HH:mm)
+  - week (Integer): Bitmask of active days
+
+Response (BUDP):
+- Same as Manipulator.getSchedules
+
+Module: Manipulator
+
+6. Method: Manipulator.getVersion  
+Description: Get current and latest firmware info  
+Use case: Check upgrade availability
+
+Request (BDDP):
+- method (String, Required): "Manipulator.getVersion"
+- targetDevice (String, Required): DeviceId of the Manipulator
+- token (String, Required): Network token
+
+Response (BUDP):
+- data.version (String, Required): Current firmware version
+- data.newVersion.versionId (String, Optional)
+- data.newVersion.versionCode (String, Optional)
+- data.newVersion.fileSize (String, Optional)
+
+
+
+
+=== CHUNK: Manipulator.startUpgrade/getActivityLogs ===
+
+Module: Manipulator
+
+7. Method: Manipulator.startUpgrade  
+Description: Start firmware upgrade for the Manipulator  
+Use case: Upgrade firmware remotely
+
+Request (BDDP):
+- method (String, Required): "Manipulator.startUpgrade"
+- targetDevice (String, Required): DeviceId of the device
+- token (String, Required): Network token
+- params.versionId (String, Required): Desired version ID
+
+Response (BUDP):
+- data.isStarted (Boolean, Required): Whether upgrade started
+
+Module: Manipulator
+
+8. Method: Manipulator.getActivityLogs  
+Description: Retrieve historical logs of the Manipulator  
+Use case: Get activity records  
+⚠️ Requires permission: "DEVICE.HISTORICAL_DATA.READ"
+
+Request (BDDP):
+- method (String, Required): "Manipulator.getActivityLogs"
+- targetDevice (String, Required)
+- token (String, Required)
+- params.search (Object, Optional):
+  - startDate (String, Required): YYYY-MM-DD
+  - endDate (String, Required): YYYY-MM-DD
+- params.retrievalKey (String, Optional): For paginated results
+
+Response (BUDP):
+- data.logs (Array, Required):
+  - id (Array): Log ID
+  - time (Date): Timestamp
+  - data (Object): Log details
+- data.retrievalKeys.next (Object, Optional): Key for next batch
+
+
+=== CHUNK: Manipulator.Callbacks===
+
+Module: Manipulator
+
+9. Callbacks  
+Description: Manipulator supports real-time status reporting via MQTT or HTTP Callback  
+Use case: Monitor ON/OFF state, delay events, or schedule executions
+
+Supported delivery:
+- MQTT report topic
+- HTTP POST callback endpoint
+
+Typical events:
+- State changed
+- Delay executed
+- Schedule triggered
+- Firmware upgrade
+
+
+=== CHUNK: MotionSensor.getState ===
+
+Module: MotionSensor
+
+1. Method: MotionSensor.getState  
+Description: Get current state of the motion sensor  
+Use case: Query motion alert status, battery, temperature, and sensor configuration
+
+Request (BDDP):
+- method (String, Required): "MotionSensor.getState"
+- targetDevice (String, Required): DeviceId of the sensor
+- token (String, Required): Network token
+
+Response (BUDP):
+- data.online (Boolean, Required): Whether device is online
+- data.state.alarmStateonline.stayError (Boolean, Required): Stay error alarm
+- data.state.alarmStateonline.detectorError (Boolean, Required): Detection error alarm
+- data.state.alarmStateonline.freezeError (Boolean, Required): Freeze error alarm
+- data.state.alarmStateonline.reminder (Boolean, Required): Reminder alarm
+- data.state.state (String, Required): Sensor state ["normal", "alert"]
+- data.state.alertStandby (Integer, Required): Alert standby status
+- data.state.battery (String, Required): Battery level (0–4)
+- data.state.beep (Boolean, Required): Whether alarm is sounding
+- data.state.devTemperature (Double, Required): Current temperature
+- data.state.interval (Integer, Optional): Continuous alert interval
+- data.state.sensitivity (String, Required): Sensitivity level
+- data.state.sensorMode (String, Required): Current mode of sensor
+- data.state.stateChangedAt (Date, Required): Timestamp of last state change
+- data.state.supportChangeMode (Boolean, Required): Whether mode switching is supported
+- data.state.version (String, Required): Firmware version
+- data.reportAt (Date, Required): Report time
+- data.deviceId (String, Required): Device ID
+
+=== CHUNK: MotionSensor.getActivityLogs  ===
+
+Module: MotionSensor
+
+2. Method: MotionSensor.getActivityLogs  
+Description: Retrieve activity logs of the motion sensor  
+Use case: Review sensor triggering history  
+Requires permission: "DEVICE.HISTORICAL_DATA.READ"
+
+Request (BDDP):
+- method (String, Required): "MotionSensor.getActivityLogs"
+- targetDevice (String, Required): DeviceId of the sensor
+- token (String, Required): Network token
+- params.search (Object, Optional):
+  - startDate (String, Required): Start date "YYYY-MM-DD"
+  - endDate (String, Required): End date "YYYY-MM-DD"
+- params.retrievalKey (String, Optional): Retrieval key for pagination
+
+Response (BUDP):
+- data.logs (Array, Required): Activity logs
+  - data.logs[*].id (Array): Log ID
+  - data.logs[*].time (Date): Time of event
+  - data.logs[*].data (Object): Log details
+- data.retrievalKeys (Object, Optional):
+  - next (Object, Required): Key to fetch next batch
+
+=== CHUNK: MotionSensor.setAttributes/Callbacks ===
+Module: MotionSensor
+
+3. Method: MotionSensor.setAttributes  
+Description: Set configuration attributes for the motion sensor  
+Use case: Customize LED alarm, sensitivity, alert interval, and no-motion delay
+
+Request (BDDP):
+- method (String, Required): "MotionSensor.setAttributes"
+- targetDevice (String, Required): DeviceId of the sensor
+- token (String, Required): Network token
+- params.alertInterval (Integer, Optional): Alert interval in minutes
+- params.ledAlarm (Boolean, Optional): Whether LED alarm is enabled
+- params.nomotionDelay (Integer, Optional): No-motion delay (0–120 minutes)
+- params.sensitivity (Integer, Optional): Motion detection sensitivity [1–3]
+
+Response (BUDP):
+- params.alertInterval (Integer, Required): Confirmed alert interval
+- params.ledAlarm (Boolean, Required): Confirmed LED alarm setting
+- params.nomotionDelay (Integer, Required): Confirmed no-motion delay
+- params.sensitivity (Integer, Required): Confirmed motion sensitivity
+
+4. Callbacks  
+Description: MotionSensor supports push notifications via MQTT or HTTP  
+Use case: Get real-time motion alert updates or sensor status changes
+
+Supported mechanisms:
+- MQTT report topic
+- HTTP POST Callback API
+
+Typical callback events:
+- Motion detected
+- State transitioned to alert/normal
+- Device online/offline
+- Configuration changes (e.g., LED, sensitivity)
+
+
+=== CHUNK: MultiOutlet.getState/setState ===
+
+Module: MultiOutlet
+
+1. Method: MultiOutlet.getState  
+Description: Get the current state of all sockets in the MultiOutlet  
+Use case: Query each socket’s current on/off state, delay info, firmware version
+
+Request (BDDP):
+- method (String, Required): "MultiOutlet.getState"
+- targetDevice (String, Required): Device ID of the MultiOutlet
+- token (String, Required): Network token
+
+Response (BUDP):
+- data.state (List<String>, Required): List of states for each socket ["closed", "open"]
+- data.delays[index].on (Integer, Required): Remaining Delay ON (minutes), 0 = off
+- data.delays[index].off (Integer, Required): Remaining Delay OFF (minutes), 0 = off
+- data.version (String, Required): Firmware version
+- data.tz (Integer, Required): Timezone [-12 ~ 12]
+
+Module: MultiOutlet
+
+2. Method: MultiOutlet.setState  
+Description: Set on/off state for one or more sockets  
+Use case: Control multiple plugs via bitmask
+
+Request (BDDP):
+- method (String, Required): "MultiOutlet.setState"
+- targetDevice (String, Required): Device ID of the MultiOutlet
+- token (String, Required): Network token
+- params.chs (Integer, Required): Bitmask of selected sockets (0x01–0xFF)
+- params.state (String, Required): Target state ["close", "open"]
+
+Response (BUDP):
+- data.state (List<String>, Required): Resulting socket states ["closed", "open"]
+
+
+
+=== CHUNK: MultiOutlet.setDelay/getSchedules ===
+
+Module: MultiOutlet
+
+3. Method: MultiOutlet.setDelay  
+Description: Set delayed ON/OFF timers for sockets  
+Use case: Schedule delayed activation/deactivation for individual sockets
+
+Request (BDDP):
+- method (String, Required): "MultiOutlet.setDelay"
+- targetDevice (String, Required): Device ID of the MultiOutlet
+- token (String, Required): Network token
+- params.delays[*] (Array, Required): Delay objects per socket
+  - ch (Integer, Optional): Socket index
+  - on (Integer, Optional): Delay ON time (minutes), 0 = cancel
+  - off (Integer, Optional): Delay OFF time (minutes), 0 = cancel
+
+Response (BUDP):
+- data.delays[index].on (Integer, Required): Remaining delay ON
+- data.delays[index].off (Integer, Required): Remaining delay OFF
+
+Module: MultiOutlet
+
+4. Method: MultiOutlet.getSchedules  
+Description: Get all configured schedules for MultiOutlet  
+Use case: View scheduled ON/OFF tasks for each socket
+
+Request (BDDP):
+- method (String, Required): "MultiOutlet.getSchedules"
+- targetDevice (String, Required)
+- token (String, Required)
+
+Response (BUDP):
+- data[index].ch (Integer, Required): Socket index
+- data[index].isValid (Boolean, Required): Whether schedule is enabled
+- data[index].index (Integer, Required): Schedule ID
+- data[index].on (String, Optional): ON time (HH:mm)
+- data[index].off (String, Optional): OFF time (HH:mm)
+- data[index].week (Integer, Required): Days mask (Sun–Sat)
+
+
+=== CHUNK: MultiOutlet.setSchedules/getVersion ===
+
+Module: MultiOutlet
+
+5. Method: MultiOutlet.setSchedules  
+Description: Create or update schedules for sockets  
+Use case: Automate power on/off based on time
+
+Request (BDDP):
+- method (String, Required): "MultiOutlet.setSchedules"
+- targetDevice (String, Required): Device ID of the MultiOutlet
+- token (String, Required): Network token
+- params.sches (Array<Schedule>, Required): Schedule map [index 0–9]
+  - ch (Integer): Socket index
+  - isValid (Boolean): Whether schedule is enabled
+  - index (Integer): Schedule ID
+  - on (String): ON time ("HH:mm")
+  - off (String): OFF time ("HH:mm")
+  - week (Integer): Days mask (Sun–Sat)
+
+Response (BUDP):
+- Same structure as getSchedules
+Module: MultiOutlet
+
+6. Method: MultiOutlet.getVersion  
+Description: Get current and available firmware version  
+Use case: Check for upgrade availability
+
+Request (BDDP):
+- method (String, Required): "MultiOutlet.getVersion"
+- targetDevice (String, Required): Device ID
+- token (String, Required): Network token
+
+Response (BUDP):
+- data.version (String, Required): Current firmware version
+- data.newVersion.versionId (String, Optional)
+- data.newVersion.versionCode (String, Optional)
+- data.newVersion.fileSize (String, Optional)
+
+
+=== CHUNK: MultiOutlet.startUpgrade/Callbacks ===
+
+Module: MultiOutlet
+
+7. Method: MultiOutlet.startUpgrade  
+Description: Start upgrading firmware of the MultiOutlet  
+Use case: Upgrade device remotely
+
+Request (BDDP):
+- method (String, Required): "MultiOutlet.startUpgrade"
+- targetDevice (String, Required): Device ID
+- token (String, Required): Network token
+- params.versionId (String, Required): Version ID to upgrade to
+
+Response (BUDP):
+- data.isStarted (Boolean, Required): Whether upgrade has started
+
+Module: MultiOutlet
+
+8. Callbacks  
+Description: Receive real-time updates from MultiOutlet via MQTT or HTTP  
+Use case: Monitor socket state changes, delays, or schedule triggers
+
+Delivery options:
+- MQTT report topic
+- HTTP Callback (POST)
+
+Typical callback data:
+- Same as MultiOutlet.getState fields (state, delays, etc.)

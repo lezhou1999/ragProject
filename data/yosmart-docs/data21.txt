@@ -1,0 +1,189 @@
+=== CHUNK:  Device Production API Overview + requestDeviceId / activateDeviceId === 
+Module: Device Production API
+
+Description:  
+The Device Production API enables authorized clients to automate and streamline device manufacturing by accessing production-related operations such as requesting DeviceIDs, activating them, managing SN codes, and binding serial numbers. Requires access token with `scope = production/*`.
+
+---
+
+Protocol:  
+- URL: `POST /open/production/v2/api`  
+- Content-Type: "application/json"  
+- Authorization: "Bearer ${access_token}"  
+  - Access token must be obtained from `Manage.createAccessToken` for a valid CSID.
+
+Request Body:  
+- method (String, Required): Name of the operation to call  
+- params (Object): Parameters for the given method
+
+Response Body:  
+- code (String): "000000" means success, other values indicate failure  
+- data (Object): Response payload
+
+---
+
+Method: requestDeviceId  
+Description: Request a list of new DeviceIDs for manufacturing  
+- method: "requestDeviceId"  
+- params.size: Integer (Required) – Number of DeviceIDs requested  
+
+Response:  
+- code: "000000" if successful  
+- data.deviceIdList: Array<String> – Generated DeviceIDs
+
+---
+
+Method: activateDeviceId  
+Description: Activate a specific DeviceID and bind it to a physical device  
+- method: "activateDeviceId"  
+- params.deviceId: String – Optional. If omitted, an available DeviceID is used  
+- params.chipId: String (Required) – Unique hardware Chip ID  
+- params.appEui: String (Required) – Application EUI of the device  
+
+Response:  
+- code: "000000" if successful  
+- data.deviceId: String – The DeviceID that was activated
+
+
+=== CHUNK: requestSN / bindSN ===
+Module: Device Production API
+
+Method: requestSN  
+Description: Request a batch of SN (Serial Number) codes  
+- method: "requestSN"  
+- params.size: Integer (Required) – Number of SNs requested  
+
+Response:  
+- code: "000000" if successful  
+- data.snList: List<String> – List of generated SNs
+
+---
+
+Method: bindSN  
+Description: Bind a serial number (SN) code to a device. The device must already be activated.  
+- method: "bindSN"  
+- params.deviceId: String (Required) – Activated DeviceID  
+- params.sn: String – Optional. If empty, the system will generate a new SN  
+
+Response:  
+- code: "000000" if successful  
+- data.sn: String – Successfully bound SN code
+
+
+=== CHUNK: WiFi Setup Overview + SmartConfig ===
+Module: WiFi Setup – SmartConfig
+
+Method: N/A (Device-level setup)
+
+Description:
+YoSmart supports WiFi setup for unprovisioned smart devices such as P1603 and P1604. There are two major setup modes:
+1. SmartConfig (via mobile)
+2. AP Mode (hotspot-based)
+
+SmartConfig is a provisioning protocol by Texas Instruments that allows users to send WiFi SSID and password from a mobile device to a headless IoT device.
+
+Usage:
+- Put the device into WiFi Configuration Mode (refer to user manual)
+- Use the mobile app to broadcast WiFi credentials via SmartConfig
+- Device will automatically connect to the WiFi
+
+Supported Devices:
+- P1603 (Version 0356 and below)
+
+Highlights:
+- No need for device UI or manual SSID input
+- Designed for factory automation and app-assisted pairing
+- Android and iOS demo available
+
+
+=== CHUNK: WiFi Setup over AP (192.168.4.1) ===
+
+Module: WiFi Setup – AP Mode (V1)
+
+Method: HTTP API to device hotspot
+
+Description:
+After entering WiFi configuration mode, the device opens a hotspot (SSID: YS_XXXXXXXX). The client connects to it and sends WiFi info via HTTP.
+
+Flow:
+1. Device enters configuration mode and creates hotspot
+2. Client connects to hotspot (no password)
+3. Send configuration via HTTP
+4. Device exits config mode (auto exit after 4 mins if idle)
+
+Default Host: 192.168.4.1
+
+Use Cases & Endpoints:
+
+GET /api/v1/network/state
+- Get current WiFi status
+Response:
+  - code: "000000"
+  - data.wifi.ip (optional): current WiFi IP
+  - data.wifi.ssid (optional): SSID
+  - data.internet (optional): internet connection status
+
+GET /api/v1/wifi/scan
+- Scan nearby WiFi (timeout > 8s recommended)
+Response:
+  - data[*].ssid: SSID
+  - data[*].rssi: signal strength
+
+POST /api/v1/wifi/sta
+- Configure target WiFi
+Body:
+  - ssid: target SSID
+  - pwd: password
+
+POST /api/v1/wifi/config/exit
+- Manually exit config mode
+
+Supported Devices:
+- P1603 (Version 0360+)
+- P1604
+
+
+=== CHUNK:  WiFi Setup over AP V2 (192.168.10.1) ===
+
+Module: WiFi Setup – AP Mode V2
+
+Method: Enhanced HTTP API to device hotspot
+
+Description:
+An upgraded version of AP mode. Device opens a hotspot (SSID: YS_XXXXXXXX) and receives WiFi config via V2 HTTP protocol.
+
+Flow:
+1. Device enters WiFi config mode
+2. Client connects to hotspot
+3. Send WiFi configuration via HTTP API
+4. Device exits config mode
+
+Default Host: 192.168.10.1
+
+Endpoints:
+
+GET /cgi-bin/api/v1/getNetState
+- Get current network state (Ethernet/WiFi info)
+
+GET /cgi-bin/api/v1/scan
+- Scan WiFi (timeout > 8s)
+Response:
+  - data[*].ssid: ESSID
+  - data[*].bssid: BSSID
+  - data[*].authType: encryption type
+  - data[*].rssi: signal strength
+
+POST /cgi-bin/api/v1/setWiFiSta
+- Set target WiFi
+Body:
+
+  - ssid: ESSID
+  - pwd: password
+  - authType: encryption type
+
+POST /cgi-bin/api/v1/exitAPMode
+- Exit AP mode, return to STA mode
+
+Supported Devices:
+- P1605
+- P1613

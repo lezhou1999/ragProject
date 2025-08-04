@@ -1,0 +1,284 @@
+=== CHUNK: LeakSensor.getState / setSettings / getActivityLogs / Callbacks ===
+Module: LeakSensor
+
+1. Method: LeakSensor.getState  
+Description: Get the current state of the leak sensor  
+Use case: Query water detection, alarm status, battery level, and sensor mode
+
+Request (BDDP):
+- method (String, Required): "LeakSensor.getState"
+- targetDevice (String, Required): DeviceId of the Leak Sensor
+- token (String, Required): Network token
+
+Response (BUDP):
+- data.online (Boolean, Required): Whether the device is online
+- data.state.alarmStateonline.stayError (Boolean, Required): Alarm status
+- data.state.alarmStateonline.detectorError (Boolean, Required): Alarm status
+- data.state.alarmStateonline.freezeError (Boolean, Required): Alarm status
+- data.state.alarmStateonline.reminder (Boolean, Required): Alarm status
+- data.state.state (String, Required): Device state ["normal", "alert"]
+- data.state.alertStandby (Integer, Required): Alert standby status
+- data.state.battery (String, Required): Battery level (0 = empty, 4 = full)
+- data.state.beep (Boolean, Required): Whether the device is sounding an alarm
+- data.state.devTemperature (Double, Required): Current temperature
+- data.state.interval (Integer, Optional): Continuous alert interval
+- data.state.sensitivity (String, Required): Sensitivity level
+- data.state.sensorMode (String, Required): Sensor operation mode
+- data.state.stateChangedAt (Date, Required): Last state change time
+- data.state.supportChangeMode (Boolean, Required): Whether mode is switchable
+- data.state.version (String, Required): Firmware version
+- data.reportAt (Date, Required): Time of report
+- data.deviceId (String, Required): Device ID
+
+---
+
+2. Method: LeakSensor.setSettings  
+Description: Set parameters for leak sensor behavior  
+Use case: Adjust beep, mode, interval, and sensitivity
+
+Request (BDDP):
+- method (String, Required): "LeakSensor.setSettings"
+- targetDevice (String, Required): DeviceId of the sensor
+- token (String, Required): Network token
+- params.interval (Number, Optional): Interval for continuous alarm (in minutes)
+- params.beep (Boolean, Optional): Enable/disable beep
+- params.sensorMode (String, Optional): Sensor work mode ["WaterPeak", "WaterLeak"]
+- params.sensitivity (String, Optional): Sensitivity level ["low", "high"]
+
+Response (BUDP):
+- No specific response fields defined
+
+---
+
+=== CHUNK: LeakSensor.getActivityLogs / Callbacks ===
+
+Module: LeakSensor
+
+3. Method: LeakSensor.getActivityLogs  
+Description: Retrieve activity logs from the leak sensor  
+Use case: Review water detection or alert history  
+Permission required: "DEVICE.HISTORICAL_DATA.READ"
+
+Request (BDDP):
+- method (String, Required): "LeakSensor.getActivityLogs"
+- targetDevice (String, Required): DeviceId of the device
+- token (String, Required): Network token
+- params.search (Object, Optional): Filter conditions
+  - startDate (String, Required): Start date ("YYYY-MM-DD")
+  - endDate (String, Required): End date ("YYYY-MM-DD")
+- params.retrievalKey (String, Optional): Key for pagination
+
+Response (BUDP):
+- data.logs (Array, Required): List of log records
+  - data.logs[*].id (Array, Required): Record ID
+  - data.logs[*].time (Date, Required): Event timestamp
+  - data.logs[*].data (Object, Required): Log content
+- data.retrievalKeys (Object, Optional): Pagination keys
+  - data.retrievalKeys.next (Object, Required): Next page retrieval key
+
+---
+
+4. Callbacks  
+Description: LeakSensor can report state changes via MQTT or HTTP Callback  
+Use case: Receive real-time alerts for water leaks or sensor changes
+
+Supported delivery methods:
+- MQTT report topic
+- HTTP Callback API
+
+Possible events include:
+- Water leak alert
+- Sensor mode change
+- Beep status
+- Battery or temperature threshold reached
+
+=== CHUNK:  Lock.fetchState ===
+Module: Lock
+
+1. Method: Lock.fetchState  
+Description: Fetch lock status from cached data  
+Use case: Quickly retrieve last known lock state without querying device directly
+
+Request (BDDP):
+- method (String, Required): "Lock.fetchState"
+- targetDevice (String, Required): DeviceId of the lock
+- token (String, Required): Network token
+
+Response (BUDP):
+- data.state.state (String, Required): Lock state ["locked", "unlocked"]
+- data.state.battery (Integer, Required): Battery level [0–4]
+- data.version (String, Required): Firmware version
+- data.tz (Integer, Required): Timezone [-12 ~ 12]
+
+=== CHUNK: Lock.getState ===
+Module: Lock
+
+2. Method: Lock.getState  
+Description: Query the latest lock status directly from device  
+Use case: Get real-time lock state and battery info
+
+Request (BDDP):
+- method (String, Required): "Lock.getState"
+- targetDevice (String, Required): DeviceId of the lock
+- token (String, Required): Network token
+
+Response (BUDP):
+- data.state.state (String, Required): Lock state ["locked", "unlocked"]
+- data.state.battery (Integer, Required): Battery level [0–4]
+- data.version (String, Required): Firmware version
+- data.tz (Integer, Required): Timezone [-12 ~ 12]
+
+=== CHUNk: Lock.listPasswords/generateOTP  ===
+
+Module: Lock
+
+3. Method: Lock.listPasswords  
+Description: Get list of passwords currently stored on the lock  
+Use case: Review active access credentials
+
+Request (BDDP):
+- method (String, Required): "Lock.listPasswords"
+- targetDevice (String, Required)
+- token (String, Required)
+- params.limit (Integer, Required): Max items to return (≤ 10)
+- params.offset (Integer, Optional): Start offset (default 0)
+
+Response (BUDP):
+- data.offset (Integer, Required)
+- data.limit (Integer, Required)
+- data.total (Integer, Required)
+- data.items (Object[], Required):
+  - index (Integer): Password index
+  - start (Datetime): Active from
+  - end (Datetime): Expires at
+  - pwd (String): Password content
+
+Module: Lock
+
+4. Method: Lock.generateOTP  
+Description: Generate a One-Time Password (OTP)  
+Use case: Create time-limited one-time access
+
+Request (BDDP):
+- method (String, Required): "Lock.generateOTP"
+- targetDevice (String, Required)
+- token (String, Required)
+- params.pwd (String, Optional): OTP (4-digit string /^\d{4}$/)
+
+Response (BUDP):
+- data.success (Boolean, Required): Whether OTP was generated successfully
+
+=== CHUNK: Lock.addPassword/updatePassword/delPassword / clearPassword === 
+
+Module: Lock
+
+5. Method: Lock.addPassword  
+Description: Add a new password to the lock  
+Use case: Create a permanent or temporary access credential
+
+Request (BDDP):
+- method (String, Required): "Lock.addPassword"
+- targetDevice (String, Required)
+- token (String, Required)
+- params.pwd (String, Required): Password string (4–8 digits)
+- params.start (Timestamp, Required): Start time (ms)
+- params.end (Timestamp, Required): Expiry time (ms)
+
+Response (BUDP):
+- data.success (Boolean, Required)
+
+Module: Lock
+
+6. Method: Lock.updatePassword  
+Description: Modify an existing password  
+Use case: Replace or extend access window for a password
+
+Request (BDDP):
+- method (String, Required): "Lock.updatePassword"
+- targetDevice (String, Required)
+- token (String, Required)
+- params.oldPwd (String | Number, Required): Original password or index
+- params.pwd (String, Required): New password (4–8 digits)
+- params.start (Timestamp, Required): New start time
+- params.end (Timestamp, Required): New end time
+
+Response (BUDP):
+- data.success (Boolean, Required)
+
+Module: Lock
+
+=== CHUNK: Lock.delPassword / clearPassword === 
+7. Method: Lock.delPassword  
+Description: Delete an existing password  
+Use case: Revoke access immediately
+
+Request (BDDP):
+- method (String, Required): "Lock.delPassword"
+- targetDevice (String, Required)
+- token (String, Required)
+- params.pwd (String | Number, Required): Password or index
+
+Response (BUDP):
+- data.success (Boolean, Required)
+
+---
+
+8. Method: Lock.clearPassword  
+Description: Clear all passwords from the device  
+Use case: Reset lock access completely
+
+Request (BDDP):
+- method (String, Required): "Lock.clearPassword"
+- targetDevice (String, Required)
+- token (String, Required)
+
+Response (BUDP):
+- data.success (Boolean, Required)
+
+=== CHUNK: Lock.getVersion / startUpgrade / Callbacks===
+Module: Lock
+
+9. Method: Lock.getVersion  
+Description: Get current and latest firmware version  
+Use case: Display upgrade availability
+
+Request (BDDP):
+- method (String, Required): "Lock.getVersion"
+- targetDevice (String, Required)
+- token (String, Required)
+
+Response (BUDP):
+- data.version (String, Required): Current firmware version
+- data.newVersion.versionId (String, Optional)
+- data.newVersion.versionCode (String, Optional)
+- data.newVersion.fileSize (String, Optional)
+
+---
+
+10. Method: Lock.startUpgrade  
+Description: Trigger firmware upgrade  
+Use case: Push device upgrade remotely
+
+Request (BDDP):
+- method (String, Required): "Lock.startUpgrade"
+- targetDevice (String, Required)
+- token (String, Required)
+- params.versionId (String, Required): Target version
+
+Response (BUDP):
+- data.isStarted (Boolean, Required): Whether upgrade has begun
+
+Module: Lock
+
+11. Callbacks  
+Description: Receive lock events via HTTP Callback or MQTT  
+Use case: Listen for lock/unlock status, password usage, or version upgrade
+
+Supported methods:
+- MQTT report topic
+- HTTP POST Callback endpoint
+
+Common events:
+- Lock state changed
+- Password added/used/deleted
+- Firmware upgrade completed

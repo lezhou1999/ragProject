@@ -1,0 +1,399 @@
+=== CHUNK: COSmokeSensor.getState ===
+Method: COSmokeSensor.getState
+Description: Retrieve the current state of a CO & Smoke Sensor device.
+
+Request (BDDP):
+- method: "COSmokeSensor.getState"
+- targetDevice (String, Required): Device ID of the sensor
+- token (String, Required): Network token of the sensor
+
+Response (BUDP):
+- data.state.online (Boolean): Whether the device is currently online
+- data.state.state: Status flags:
+  - unexpected: Sensor is disconnected from base
+  - sLowBattery: Low sensor battery warning
+  - smokeAlarm: Smoke detected
+  - gasAlarm: Carbon monoxide detected
+  - highTempAlarm: Temperature exceeds 57℃
+  - silence: Reserved field
+- data.state.battery (String): Battery level of base (0 to 4)
+- data.state.interval (Integer): Continuous alert interval
+- data.state.metadata.inspect (Boolean): Self-check result
+- data.state.devTemperature (Integer): Current temperature
+- data.state.sche (Object): Self-check schedule info
+  - type: "disable", "weekly", or "monthly"
+  - day: 0–6 (weekly) or 0–27 (monthly)
+  - time: "HH:MM" format
+- data.state.version (String): Firmware version
+- data.reportAt (Date): Last reported time
+- data.deviceId (String): Device EUI
+
+This method is useful for real-time status monitoring of the COSmokeSensor, including smoke, gas, and high temperature alerts.
+
+=== CHUNK: COSmokeSensor.setState ===
+
+Method: COSmokeSensor.setState
+Description: Trigger the sensor to run a self-inspection check.
+
+Request (BDDP):
+- method: "COSmokeSensor.setState"
+- targetDevice (String, Required): Device ID of the sensor
+- token (String, Required): Network token of the sensor
+- params.inspect (Boolean, Required): Set to true to trigger self-checking
+
+Response (BUDP):
+- Returns a standard response packet confirming command delivery
+
+This method is used to remotely initiate a self-inspection routine for the CO & Smoke Sensor, verifying whether the sensor is operational.
+
+=== CHUNK: COSmokeSensor.setSchedule & Callback ===
+
+Method: COSmokeSensor.setSchedule
+Description: Set up scheduled self-checking for the COSmokeSensor.
+
+Request (BDDP):
+- method: "COSmokeSensor.setSchedule"
+- targetDevice (String, Required): Device ID of the sensor
+- token (String, Required): Network token of the sensor
+- params.type (String, Required): One of "disable", "weekly", or "monthly"
+- params.day (Integer, Required): Day of the week or month, depending on schedule type
+- params.time (String, Required): Time of day for the self-check, format "HH:mm"
+
+Response (BUDP):
+- Returns a standard response confirming the schedule update
+
+Callback:
+The device supports callback notifications via either HTTP Callback API or MQTT report topic. You will receive status reports (e.g., alarm state, check results) on the configured channel.
+
+This method ensures consistent device self-checking without manual intervention.
+
+=== CHUNK:CSDevice.sendCommand and downlink method ===
+Module: CSDevice
+
+1. Method: CSDevice.sendCommand  
+Description: Send data to device and wait for response (timeout ~4s).  
+Use case: Suitable for immediate-response commands.
+
+Request (BDDP):
+- method: "CSDevice.sendCommand"
+- targetDevice (String, Required): The DeviceId of the CSDevice
+- token (String, Required): Network token of the device
+- params.payload (Array<byte>, Required): Byte array as the command payload
+
+Response (BUDP):
+- data.payload (Array<byte>, Required): Byte array returned from the device
+
+---
+
+2. Method: CSDevice.downlink  
+Description: Send data to device without waiting for a response.  
+Use case: Suitable for low-latency commands that do not require confirmation.
+
+Request (BDDP):
+- method: "CSDevice.downlink"
+- targetDevice (String, Required): DeviceId of the CSDevice
+- token (String, Required): Net token
+- params.payload (Array<byte>, Required): Payload to send
+- params.confirmed (Boolean, Required): If true, this is a confirmed downlink
+- params.fPort (Integer, Required): fPort for downlink communication
+
+Response (BUDP):
+- data.fCnt (Integer, Required): Frame counter (fCnt) of the downlink packet
+
+These two methods are designed for different needs—`sendCommand` for request-response cycles, and `downlink` for fire-and-forget transmission.
+
+=== CHUNK: CSDevice callback ===
+Module: CSDevice
+
+3. Callback Notification (via HTTP or MQTT)
+Description: Devices can report back to your system through HTTP Callback API or MQTT topic.
+
+Callback Payload Format (BUDP):
+- data.payload (Array<byte>, Required): Byte array returned as part of uplink response or status report
+
+How to Receive:
+- HTTP: Your endpoint (Callback_URL) must support POST with JSON body
+- MQTT: Subscribe to the appropriate topic (e.g., report channel under yl-home or customer namespace)
+
+This callback mechanism enables real-time, asynchronous monitoring of CSDevice state or responses. It is especially useful for sensors or event-triggered devices that operate on LoRa/LPWAN-like networks.
+
+You can configure which callbacks to receive through YoLink App or device configuration.
+
+=== CHUNK: CellularHub.getState & Code Maps ===
+Module: CellularHub
+
+1. Method: CellularHub.getState  
+Description: Retrieves the current status of a Cellular Hub.
+
+BDDP Request:
+- method: "CellularHub.getState"
+- targetDevice: <String, Required> Device ID of the hub
+- token: <String, Required> Network token of the hub
+
+BUDP Response (selected fields):
+- data.version: Firmware version of the hub
+- data.wifi.enable: Whether WiFi is enabled
+- data.wifi.ssid / ip / gateway / mask: Current WiFi configuration
+- data.eth.enable: Whether Ethernet is connected
+- data.eth.ip / gateway / mask: Current Ethernet configuration
+- data.cellular.enable: Whether cellular network is connected
+- data.cellular.module.enable: Is the cellular module running
+- data.cellular.module.mfr / model / ver / imei: Module manufacturer, model, version, IMEI
+- data.cellular.iccid: ICCID of SIM card (empty string means not detected)
+- data.cellular.apn: Current APN
+- data.cellular.regState: Registration status, e.g., ["none", "registered", "roaming"]
+- data.cellular.regStateCode: Cellular registration code (see code map below)
+- data.cellular.rssi: Signal strength (RSSI), 99 means unknown or undetectable
+- data.other.power.dc: Whether DC power is connected
+- data.other.power.battery: Whether battery is connected
+- data.other.power.batteryState: Battery status (see battery code map)
+
+---
+
+2.1 Cellular Registration Code Map:
+- 0: Not registered, not searching
+- 1: Registered, home network
+- 2: Not registered, sea
+
+=== CHUNK: scanWiFiList, setWiFi, resetCellular ===
+Module: CellularHub
+
+3. Method: CellularHub.scanWiFiList  
+Description: Scans for nearby WiFi access points. It is recommended to set timeout > 8 seconds.
+
+BDDP Request:
+- method: "CellularHub.scanWiFiList"
+- targetDevice: <String, Required>
+- token: <String, Required>
+
+BUDP Response:
+- data.wifiList[*].ssid: SSID of access point
+- data.wifiList[*].rssi: RSSI signal strength
+- data.wifiList[*].encryption: Encryption type (see map below)
+
+3.1 WiFi Encryption Code Map:
+- none: No encryption
+- wep: WEP
+- psk: WPA-PSK
+- psk2: WPA2-PSK
+- psk-mixed: WPA/WPA2 Mixed Mode
+- unknown: Unknown encryption
+
+---
+
+4. Method: CellularHub.setWiFi  
+Description: Sets WiFi information when the hub is online.
+
+BDDP Request:
+- method: "CellularHub.setWiFi"
+- targetDevice / token: <String, Required>
+- params:
+  - ssid: SSID of the target WiFi
+  - password: WiFi password
+  - encryption: WiFi encryption method (e.g., "psk2")
+
+---
+
+5. Method: CellularHub.resetCellular  
+Description: Resets the cellular module. Used to reinitialize or recover mobile network.
+
+BDDP Request:
+- method: "CellularHub.resetCellular"
+- targetDevice / token: <String, Required>
+
+BUDP Response: No special fields. Success is indicated by `code: "000000"`.
+
+=== CHUNK: Dimmer.getState and setState ===
+Module: Dimmer
+
+1. Method: Dimmer.getState  
+Description: Get current state of the dimmer device  
+Use case: Query current power state, brightness, delay, version, timezone
+
+Request (BDDP):
+- method (String, Required): "Dimmer.getState"
+- targetDevice (String, Required): DeviceId of the Dimmer
+- token (String, Required): Network token of the Dimmer
+
+Response (BUDP):
+- data.state (String, Required): Device state, one of ["closed", "open"]
+- data.brightness (Integer, Required): Brightness level [1–100]
+- data.delay.on (Integer, Required): Remaining delay ON time (minutes), 0 = OFF
+- data.delay.off (Integer, Required): Remaining delay OFF time (minutes), 0 = OFF
+- data.version (String, Required): Firmware version
+- data.tz (Integer, Required): Device timezone (-12 ~ 12)
+
+---
+
+2. Method: Dimmer.setState  
+Description: Set the on/off state and brightness of the dimmer  
+Use case: Remotely control the device's power state and brightness
+
+Request (BDDP):
+- method (String, Required): "Dimmer.setState"
+- targetDevice (String, Required): DeviceId of the Dimmer
+- token (String, Required): Network token
+- params.state (String, Required): Desired state ["close", "open"]
+- params.brightness (Integer, Optional): Desired brightness [1–100]
+
+Response (BUDP):
+- data.state (String, Required): Updated state ["closed", "open"]
+
+=== CHUNK: Dimmer.setDelay and getSchedules ===
+Module: Dimmer
+
+3. Method: Dimmer.setDelay  
+Description: Set delay to turn on/off the dimmer  
+Use case: Configure scheduled power changes with delay
+
+Request (BDDP):
+- method (String, Required): "Dimmer.setDelay"
+- targetDevice (String, Required): DeviceId of the Dimmer
+- token (String, Required): Network token
+- params.delayOn (Integer, Optional): Delay ON in minutes (0 to cancel)
+- params.delayOff (Integer, Optional): Delay OFF in minutes (0 to cancel)
+
+Response (BUDP):
+- data.delay.on (Integer, Required): Remaining delay ON (minutes)
+- data.delay.off (Integer, Required): Remaining delay OFF (minutes)
+
+---
+
+4. Method: Dimmer.getSchedules  
+Description: Retrieve current schedule list  
+Use case: Check existing automation for power on/off
+
+Request (BDDP):
+- method (String, Required): "Dimmer.getSchedules"
+- targetDevice (String, Required): DeviceId of the Dimmer
+- token (String, Required): Network token
+
+Response (BUDP):
+- data[index].isValid (Boolean, Required): Whether the schedule is enabled
+- data[index].index (Integer, Required): Schedule record index
+- data[index].on (String, Optional): ON time in format HH:mm
+- data[index].off (String, Optional): OFF time in format HH:mm
+- data[index].week (Integer, Required): Mask of active days (Sun–Sat)
+
+=== CHUNK: Dimmer.setSchedules and getVersion ===
+
+Module: Dimmer
+
+5. Method: Dimmer.setSchedules  
+Description: Set schedule list for the dimmer  
+Use case: Define auto on/off plans based on time and weekday mask
+
+Request (BDDP):
+- method (String, Required): "Dimmer.setSchedules"
+- targetDevice (String, Required): DeviceId of the Dimmer
+- token (String, Required): Network token
+- params.sches (Array<Schedule>, Required): List of schedules (index "0" to "5")
+  - params.sches[index].isValid (Boolean, Required): Whether the rule is enabled
+  - params.sches[index].index (Integer, Required): Index of the rule
+  - params.sches[index].on (String, Required): Time to turn ON (HH:mm)
+  - params.sches[index].off (String, Required): Time to turn OFF (HH:mm)
+  - params.sches[index].week (Integer, Required): Active days mask (Sun–Sat)
+
+Response (BUDP):
+- Same structure as Dimmer.getSchedules
+---
+
+6. Method: Dimmer.getVersion  
+Description: Get firmware version info  
+Use case: Check current and available firmware for updates
+
+Request (BDDP):
+- method (String, Required): "Dimmer.getVersion"
+- targetDevice (String, Required): DeviceId of the device
+- token (String, Required): Network token
+
+Response (BUDP):
+- data.version (String, Required): Current firmware version
+- data.newVersion.versionId (String, Optional): Newest version ID
+- data.newVersion.versionCode (String, Optional): Newest version code
+- data.newVersion.fileSize (String, Optional): Newest version file size
+
+=== CHUNK: Dimmer.setDeviceAttributes, startUpgrade, getActivityLogs ===
+
+Module: Dimmer
+
+7. Method: Dimmer.setDeviceAttributes  
+Description: Set advanced attributes of the dimmer  
+Use case: Configure LED, gradient, and dimming calibration
+
+Request (BDDP):
+- method (String, Required): "Dimmer.setDeviceAttributes"
+- targetDevice (String, Required): DeviceId of the device
+- token (String, Required): Network token
+- params.led.status (String, Optional): Status LED ["on", "off"]
+- params.led.level (String, Optional): Brightness LED ["on", "off"]
+- params.gradient.on (Integer, Optional): Gentle ON (seconds) [0–20]
+- params.gradient.off (Integer, Optional): Gentle OFF (seconds) [0–20]
+- params.calibration (Integer, Optional): Dimming calibration low [0–99]
+- params.calibrationHigh (Integer, Optional): Dimming calibration high [0–99]
+
+Response (BUDP):
+- data.deviceAttributes.led.status (String, Required): Status LED ["on", "off"]
+- data.deviceAttributes.led.level (String, Required): Brightness LED ["on", "off"]
+- data.deviceAttributes.gradient.on (Integer, Required): Gentle ON (seconds)
+- data.deviceAttributes.gradient.off (Integer, Required): Gentle OFF (seconds)
+- data.deviceAttributes.calibration (Integer, Required): Low calibration
+- data.deviceAttributes.calibrationHigh (Integer, Required): High calibration
+
+---
+
+8. Method: Dimmer.startUpgrade  
+Description: Start firmware upgrade process  
+Use case: Initiate upgrade to a specified version
+
+Request (BDDP):
+- method (String, Required): "Dimmer.startUpgrade"
+- targetDevice (String, Required): DeviceId of the device
+- token (String, Required): Network token
+- params.versionId (String, Required): Desired version ID
+
+Response (BUDP):
+- data.isStarted (Boolean, Required): Whether upgrade has started
+
+---
+
+9. Method: Dimmer.getActivityLogs  
+Description: Retrieve device activity logs  
+Use case: Query usage records; requires "DEVICE.HISTORICAL_DATA.READ" permission
+
+Request (BDDP):
+- method (String, Required): "Dimmer.getActivityLogs"
+- targetDevice (String, Required): DeviceId of the device
+- token (String, Required): Network token
+- params.search (Object, Optional): Search by date
+  - params.search.startDate (String, Required): Start date (YYYY-MM-DD)
+  - params.search.endDate (String, Required): End date (YYYY-MM-DD)
+- params.retrievalKey (String, Optional): Use for pagination retrieval
+
+Response (BUDP):
+- data.logs (Array, Required): Activity records
+  - data.logs[*].id (Array, Required): Record ID
+  - data.logs[*].time (Date, Required): Record timestamp
+  - data.logs[*].data (Object, Required): Record content
+- data.retrievalKeys (Object, Optional): Pagination info
+  - data.retrievalKeys.next (Object, Required): Key for retrieving next batch
+
+=== CHUNK:  Callbacks of Dimmer ===
+
+Module: Dimmer
+
+10. Callbacks  
+Description: Receive real-time state updates from the device  
+Use case: Use HTTP Callback API or MQTT report topics to receive device changes
+
+Supported methods:
+- MQTT topics or HTTP POST callbacks will notify updates such as:
+  - Device state changes (on/off)
+  - Brightness updates
+  - Delayed trigger execution
+  - Schedule activations
+  - Firmware upgrade result
+  - Activity record arrival
+
+Note:
+- Ensure your system is subscribed to the proper MQTT topic or has registered HTTP callback endpoint.

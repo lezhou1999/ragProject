@@ -1,0 +1,354 @@
+=== CHUNK: Sprinkler.getState/setState  ===
+Module: Sprinkler
+
+1. Method: Sprinkler.getState  
+Description: Get current working status and configuration of the sprinkler.
+
+Request (BDDP):
+- method: "Sprinkler.getState"
+- targetDevice: (String, Required)
+- token: (String, Required)
+
+Response (BUDP):
+- data.state.mode: (String) Current mode: ["auto", "manual", "off"]
+- data.state.zoneSize: (Integer) Total number of zones
+- data.state.delay: (Integer) Delay time in minutes
+- data.state.watering: (Object, Optional)
+    - zone: (Integer) Index of active watering zone
+    - total: (Integer) Total watering time in minutes
+    - left: (Integer) Remaining time in minutes
+- data.setting.maxWaterTime: (Integer) Max watering time
+- data.setting.manualWater: (Array<Integer>) Manual watering time per zone
+- data.version: (String) Firmware version
+- data.tz: (Integer) Timezone setting (-12 ~ 12)
+
+Module: Sprinkler
+
+2. Method: Sprinkler.setState  
+Description: Set sprinkler's operating mode, delay, and manual settings.
+
+Request (BDDP):
+- method: "Sprinkler.setState"
+- targetDevice: (String, Required)
+- token: (String, Required)
+- params.state.mode: (String, Optional) ["auto", "manual", "off"]
+- params.state.zoneSize: (Integer, Optional)
+- params.state.delay: (Integer, Optional)
+- params.setting.manualWater: (Array<Integer>, Optional)
+- params.setting.maxWaterTime: (Integer, Optional)
+
+Response (BUDP): Same structure as Sprinkler.getState
+
+
+=== CHUNK: Sprinkler.setManualWater/getSchedules  ===
+Module: Sprinkler
+
+3. Method: Sprinkler.setManualWater  
+Description: Start or stop watering in manual mode.
+
+Request (BDDP):
+- method: "Sprinkler.setManualWater"
+- targetDevice: (String, Required)
+- token: (String, Required)
+- params.state: (String, Required) ["start", "stop"]
+
+Response (BUDP): Not explicitly defined
+
+Module: Sprinkler
+
+4. Method: Sprinkler.getSchedules  
+Description: Retrieve seasonal irrigation schedules.
+
+Request (BDDP):
+- method: "Sprinkler.getSchedules"
+- targetDevice: (String, Required)
+- token: (String, Required)
+
+Response (BUDP):
+- data.sches: (Array<Object>) Up to 4 seasonal sessions
+  - date: (String) Start date of session ("M-d")
+  - weekmask: (Integer) Days of week to activate (bitmask)
+  - plans: (Array<Object>) Up to 2 watering plans
+    - time: (String) Start time ("hⓂ️s")
+    - zones: (Array<Integer>) Watering time per zone
+
+
+=== CHUNK: Sprinkler.setSchedules/getVersion / startUpgrade  ===
+
+Module: Sprinkler
+
+5. Method: Sprinkler.setSchedules  
+Description: Configure seasonal watering schedules.
+
+Request (BDDP):
+- method: "Sprinkler.setSchedules"
+- targetDevice: (String, Required)
+- token: (String, Required)
+- params.sches: (Array<Object>)
+  - date: (String, Required) "M-d"
+  - weekmask: (Integer, Required)
+  - plans: (Array<Object>, Required)
+    - time: (String, Required) "hⓂ️s"
+    - zones: (Array<Integer>, Required) Time for each zone
+
+Response (BUDP): Same as Sprinkler.getSchedules
+
+Module: Sprinkler
+
+6. Method: Sprinkler.getVersion  
+Description: Retrieve current and latest firmware version.
+
+Request (BDDP):
+- method: "Sprinkler.getVersion"
+- targetDevice: (String, Required)
+- token: (String, Required)
+
+Response (BUDP):
+- data.version: (String) Current version
+- data.newVersion.versionId: (String, Optional)
+- data.newVersion.versionCode: (String, Optional)
+- data.newVersion.fileSize: (String, Optional)
+
+7. Method: Sprinkler.startUpgrade  
+Description: Start firmware upgrade.
+
+Request (BDDP):
+- method: "Sprinkler.startUpgrade"
+- targetDevice: (String, Required)
+- token: (String, Required)
+- params.versionId: (String, Required)
+
+Response (BUDP):
+- data.isStarted: (Boolean) Whether upgrade started
+
+
+
+=== CHUNK:  Switch.getState/setState / setDelay  ===
+Module: Switch
+
+1. Method: Switch.getState  
+Description: Get current on/off state and delay timers of the smart switch.
+
+Request (BDDP):
+- method: "Switch.getState"
+- targetDevice: (String, Required)
+- token: (String, Required)
+
+Response (BUDP):
+- data.state: (String) Device state: ["closed", "open"]
+- data.delay.on: (Integer) Remaining ON delay (minutes)
+- data.delay.off: (Integer) Remaining OFF delay (minutes)
+- data.version: (String) Firmware version
+- data.tz: (Integer) Timezone, from -12 to 12
+
+Module: Switch
+
+2. Method: Switch.setState  
+Description: Turn the switch on or off.
+
+Request (BDDP):
+- method: "Switch.setState"
+- targetDevice: (String, Required)
+- token: (String, Required)
+- params.state: (String) ["close", "open"]
+
+Response (BUDP):
+- data.state: (String) Final state of device
+
+3. Method: Switch.setDelay  
+Description: Schedule delayed ON/OFF.
+
+Request (BDDP):
+- method: "Switch.setDelay"
+- targetDevice: (String, Required)
+- token: (String, Required)
+- params.delayOn: (Integer, Optional) Delay ON minutes (0 = cancel)
+- params.delayOff: (Integer, Optional) Delay OFF minutes (0 = cancel)
+
+Response (BUDP):
+- data.delay.on: (Integer) Remaining delay ON
+- data.delay.off: (Integer) Remaining delay OFF
+
+
+
+=== CHUNK: Switch.getSchedules / setSchedules/ getVersion / startUpgrade ===
+
+Module: Switch
+
+4. Method: Switch.getSchedules  
+Description: Retrieve up to 6 time-based schedules.
+
+Request (BDDP):
+- method: "Switch.getSchedules"
+- targetDevice: (String, Required)
+- token: (String, Required)
+
+Response (BUDP):
+- data[index].isValid: (Boolean) Schedule enabled
+- data[index].index: (Integer) Schedule index 0–5
+- data[index].on/off: (String) Time to turn on/off (HH:mm)
+- data[index].week: (Integer) Active days bitmask
+
+5. Method: Switch.setSchedules  
+Description: Configure the weekly time schedule.
+
+Request (BDDP):
+- method: "Switch.setSchedules"
+- targetDevice: (String, Required)
+- token: (String, Required)
+- params.sches: Array of schedule records (0–5)
+  - index: (Integer) 0 to 5
+  - isValid: (Boolean)
+  - on/off: (String, HH:mm)
+  - week: (Integer)
+
+Response (BUDP): Same as getSchedules
+
+Module: Switch
+
+6. Method: Switch.getVersion  
+Description: Check current and latest firmware version.
+
+Request (BDDP):
+- method: "Switch.getVersion"
+- targetDevice: (String, Required)
+- token: (String, Required)
+
+Response (BUDP):
+- data.version: (String) Current version
+- data.newVersion.versionId: (String, Optional)
+- data.newVersion.versionCode: (String, Optional)
+- data.newVersion.fileSize: (String, Optional)
+8. Method: Switch.startUpgrade  
+Description: Trigger OTA firmware upgrade.
+
+Request (BDDP):
+- method: "Switch.startUpgrade"
+- targetDevice: (String, Required)
+- token: (String, Required)
+- params.versionId: (String, Required)
+
+Response (BUDP):
+- data.isStarted: (Boolean) Whether upgrade initiated
+
+
+=== CHUNK: Switch.setDeviceAttributes/getActivityLogs/Callback  ===
+
+Module: Switch
+
+7. Method: Switch.setDeviceAttributes  
+Description: Control status LED on the switch.
+
+Request (BDDP):
+- method: "Switch.setDeviceAttributes"
+- targetDevice: (String, Required)
+- token: (String, Required)
+- params.led.status: (String, Optional) ["on", "off"]
+
+Response (BUDP):
+- data.led.status: (String) Current LED status
+Module: Switch
+
+9. Method: Switch.getActivityLogs  
+Description: Retrieve historical logs of device actions (requires permission).
+
+Request (BDDP):
+- method: "Switch.getActivityLogs"
+- targetDevice: (String, Required)
+- token: (String, Required)
+- params.search.startDate: (String, "YYYY-MM-DD")
+- params.search.endDate: (String, "YYYY-MM-DD")
+- params.retrievalKey: (String, Optional)
+
+Response (BUDP):
+- data.logs[*].id: (Array) Record ID
+- data.logs[*].time: (Date) Record time
+- data.logs[*].data: (Object) Record payload
+- data.retrievalKeys.next: (Object) Key to fetch more data
+Module: Switch
+
+10. Callback via MQTT or HTTP  
+Description: You can subscribe to device state updates via MQTT or HTTP callback.
+
+Message Format:
+- Same as Switch.getState BUDP response
+
+
+=== CHUNK: THSensor.getState ===
+
+Module: THSensor
+
+1. Method: THSensor.getState  
+Description: Get the current temperature, humidity, and alert status of the sensor.
+
+Request (BDDP):
+- method: "THSensor.getState"
+- targetDevice: (String, Required)
+- token: (String, Required)
+
+Response (BUDP):
+- data.online: (Boolean) Is device online
+- data.state.state: (String) ["normal", "alert"]
+- data.state.battery: (String) Battery level (0–4)
+- data.state.mode: (String) Battery mode ["C"]
+- data.state.batteryType: (String) Battery type ["Li"]
+- data.state.temperature: (Float) Current temperature
+- data.state.humidity: (Float) Current humidity
+- data.state.version: (String) Firmware version
+- data.deviceId: (String) Device ID
+- data.reportAt: (Date) Time of reported
+
+Module: THSensor
+
+1. THSensor.getState (continued)
+
+Alarm status:
+- data.state.alarm.lowBattery / lowTemp / highTemp / lowHumidity / highHumidity: (Boolean) Various alarm flags
+- data.state.alarm.period: (Boolean) Alarm interval control
+
+Temperature & Humidity Limits:
+- data.state.tempLimit.max / min: (Float) Alert if out of this range
+- data.state.humidityLimit.max / min: (Float) Alert if out of this range
+
+Calibration:
+- data.state.tempCorrection / humidityCorrection: (Float) Manual correction values
+
+=== CHUNK:  THSensor.getActivityLogs/getMetricsLogs/Callback ===
+Module: THSensor
+
+2. Method: THSensor.getActivityLogs  
+Description: Retrieve historical activity records of the TH sensor. Requires permission.
+
+Request (BDDP):
+- method: "THSensor.getActivityLogs"
+- targetDevice: (String, Required)
+- token: (String, Required)
+- params.search.startDate / endDate: (String, "YYYY-MM-DD")
+- params.retrievalKey: (String, Optional)
+
+Response (BUDP):
+- data.logs[*].id: (Array) Log ID
+- data.logs[*].time: (Date) Time of log
+- data.logs[*].data: (Object) Log content
+- data.retrievalKeys.next: (Object, Optional) Retrieval key for pagination
+Module: THSensor
+
+3. Method: THSensor.getMetricsLogs  
+Description: Retrieve time-series metric logs (temperature, humidity). Requires permission.
+
+Request (BDDP):
+- method: "THSensor.getMetricsLogs"
+- targetDevice: (String, Required)
+- token: (String, Required)
+- params.search.startDate / endDate: (String, "YYYY-MM-DD")
+
+Response (BUDP):
+- data.logs[*].time: (Date) Record time
+- data.logs[*].*: (Number) Various temperature/humidity metrics
+Module: THSensor
+
+4. Callback  
+Description: Device status and alerts can be received via HTTP Callback API or MQTT topic.
+
+Message Format:
+- Same as THSensor.getState response (BUDP)

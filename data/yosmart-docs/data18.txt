@@ -1,0 +1,435 @@
+=== CHUNK: ApartmentLock.getState, lock, unlock ===
+
+Module: ApartmentLock
+
+Method: ApartmentLock.getState
+Description: Get the current state of the apartment lock.
+
+Request (BDDP):
+- method: "ApartmentLock.getState"
+- targetDevice: String (Required) – Device ID
+- token: String (Required) – Net token
+
+Response (BUDP):
+- data.state: String – Lock state ("Locked")
+- data.battery: String – Battery voltage (may change to percentage)
+
+---
+
+Method: ApartmentLock.lock
+Description: Lock the apartment lock.
+
+Request (BDDP):
+- method: "ApartmentLock.lock"
+- targetDevice: String (Required)
+- token: String (Required)
+
+Response (BUDP): Same as getState
+
+---
+
+Method: ApartmentLock.unlock
+Description: Unlock the apartment lock.
+
+Request (BDDP):
+- method: "ApartmentLock.close"
+- targetDevice: String (Required)
+- token: String (Required)
+
+Response (BUDP): Same as getState
+
+=== CHUNK: ApartmentLock.addPwd, updatePwd ===
+
+Module: ApartmentLock
+
+Method: ApartmentLock.addPwd
+Description: Add a new password to the lock.
+
+Request (BDDP):
+- method: "ApartmentLock.addPwd"
+- targetDevice: String (Required)
+- params.password: String (Required) – 6-8 digits
+- params.expires: Integer (Optional) – Validity in hours (null = forever)
+- params.enable: Boolean (Optional) – Whether enabled (default: true)
+
+Response (BUDP):
+- state: String – "SetSuccess"
+
+---
+
+Method: ApartmentLock.updatePwd
+Description: Update an existing password.
+
+Request (BDDP):
+- method: "ApartmentLock.updatePwd"
+- targetDevice: String (Required)
+- params.oldPwd: String (Required)
+- params.newPwd: String (Optional) – New password, 6-8 digits
+- params.expires: Integer (Optional)
+- params.enable: Boolean (Optional)
+
+Response (BUDP):
+- state: String – "SetSuccess"
+
+=== CHUNK: ApartmentLock.getTemporaryPassword, updateSuperPwd ===
+
+Module: ApartmentLock
+
+Method: ApartmentLock.getTemporaryPassword
+Description: Generate a temporary password.
+
+Request (BDDP):
+- method: "ApartmentLock.getTemporaryPassword"
+- targetDevice: String (Required)
+- params.expires: Integer (Required) – Valid 0–168 (in hours)
+
+Response (BUDP):
+- data.password: String – Temporary password
+- data.expires: Integer – Expiration time
+
+---
+
+Method: ApartmentLock.updateSuperPwd
+Description: Set a new super password.
+
+Request (BDDP):
+- method: "ApartmentLock.updateSuperPwd"
+- targetDevice: String (Required)
+- params.password: String (Required) – 6-8 digits
+
+Response (BUDP):
+- state: String – "SetSuccess"
+
+=== CHUNK: ApartmentLock.delPwd, clearPwd, Callbacks ===
+
+Module: ApartmentLock
+
+Method: ApartmentLock.delPwd
+Description: Delete a user password.
+
+Request (BDDP):
+- method: "ApartmentLock.delPwd"
+- targetDevice: String (Required)
+- params.password: String (Required)
+
+Response (BUDP):
+- state: String – "SetSuccess"
+
+---
+
+Method: ApartmentLock.clearPwd
+Description: Clear all user passwords.
+
+Request (BDDP):
+- method: "ApartmentLock.clearPwd"
+- targetDevice: String (Required)
+
+Response (BUDP):
+- state: String – "SetSuccess"
+
+---
+
+Method: Callbacks
+Description: Real-time state changes via HTTP or MQTT.
+
+Response (BUDP):
+- data.state: String – "Locked"
+- data.battery: String – Battery voltage
+
+=== CHUNK: AutoLock.getState, lock, unlock ===
+
+Module: AutoLock
+
+Method: AutoLock.getState
+Description: Get the current lock state.
+
+Request (BDDP):
+- method: "AutoLock.getState"
+- targetDevice: String (Required)
+- token: String (Required)
+
+Response (BUDP):
+- data.state: String – Lock state ["Locked", "UnLocked"]
+- data.battery: String – Battery level ["high", "normal", "low", "empty"]
+
+---
+
+Method: AutoLock.lock
+Description: Lock the AutoLock device.
+
+Request (BDDP):
+- method: "AutoLock.lock"
+- targetDevice: String (Required)
+- token: String (Required)
+
+Response (BUDP):
+- data.state: String – Lock state ("Locked")
+
+---
+
+Method: AutoLock.unlock
+Description: Unlock the AutoLock device.
+
+Request (BDDP):
+- method: "AutoLock.unlock"
+- targetDevice: String (Required)
+- token: String (Required)
+
+Response (BUDP):
+- data.state: String – Lock state ("Locked")
+
+
+=== CHUNK: AutoLock.getUserInfo, addUser, deleteUser ===
+
+Module: AutoLock
+
+Method: AutoLock.getUserInfo
+Description: Get user information by user index. Admin index is 0.
+
+Request (BDDP):
+- method: "AutoLock.getUserInfo"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.userId: String (Required) – User index
+
+Response (BUDP):
+- data.userInfo.maxCount: Integer – Max user count
+- data.userInfo.index: Integer – Current user index
+- data.userInfo.pwdCount: Integer – Number of credentials (password/card/fingerprint)
+- data.userInfo.typeCode: Integer – User type ["管理员","主人","孩子","客人","保姆","钟点工","临时工"]
+- data.userInfo.nameBytes: ArrayBuffer – GBK encoded username
+
+---
+
+Method: AutoLock.addUser
+Description: Add a new user.
+
+Request (BDDP):
+- method: "AutoLock.addUser"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.nameBytes: ArrayBuffer (Required) – Username
+
+Response (BUDP):
+- data.userInfo.index: Integer – Index of newly added user
+
+---
+
+Method: AutoLock.deleteUser
+Description: Delete a user by index.
+
+Request (BDDP):
+- method: "AutoLock.deleteUser"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.userId: Integer (Required) – Index of user to delete
+
+Response (BUDP): None (implicit success if no error)
+
+
+
+
+=== CHUNK: AutoLock.getUserPasswords ===
+
+Module: AutoLock
+
+Method: AutoLock.getUserPasswords
+Description: Get password information for a specific user.
+
+Request (BDDP):
+- method: "AutoLock.getUserPasswords"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.userId: Integer (Required) – User index
+- params.passwordId: Integer (Required) – Password index (0 is first)
+
+Response (BUDP):
+- data.passwordInfo.maxCount: Integer – Total number of passwords
+- data.passwordInfo.id: Integer – Index of the current password
+- data.passwordInfo.typeCode: Integer – Password type ["密码", "指纹", "卡"]
+- data.passwordInfo.password: String – Actual password content
+
+
+=== CHUNK:  AutoLock.addUserPassword, addUserCard, delUserPassword, clearPwd ===
+
+Module: AutoLock
+
+Method: AutoLock.addUserPassword
+Description: Add a password for a specific user.
+
+Request (BDDP):
+- method: "AutoLock.addUserPassword"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.userId: Integer (Required) – Target user index
+- params.password: String (Required) – Password to add
+
+Response (BUDP): (None)
+
+---
+
+Method: AutoLock.addUserCard
+Description: Add a card number for a specific user.
+
+Request (BDDP):
+- method: "AutoLock.addUserPassword"  [*可能为文档笔误，应为 addUserCard*]
+- targetDevice: String (Required)
+- token: String (Required)
+- params.userId: Integer (Required)
+- params.cardNo: String (Required) – Card number to add
+
+Response (BUDP): (None)
+
+---
+
+Method: AutoLock.delUserPassword
+Description: Delete a specific password from a user.
+
+Request (BDDP):
+- method: "AutoLock.addUserCard"  [*可能为文档笔误，应为 delUserPassword*]
+- targetDevice: String (Required)
+- token: String (Required)
+- params.userId: Integer (Required)
+- params.passwordId: String (Required) – Index of the password
+- params.passwordTypeCode: String (Required) – Password type
+
+Response (BUDP): (None)
+
+---
+
+Method: AutoLock.clearPwd
+Description: Clear all passwords from the lock.
+
+Request (BDDP):
+- method: "AutoLock.clearPwd"
+- targetDevice: String (Required)
+- token: String (Required)
+
+Response (BUDP): (None)
+
+
+=== CHUNK: AutoLock.getLogs, getVersion, startUpgrade ===
+Module: AutoLock
+
+Method: AutoLock.getLogs
+Description: Get lock operation logs.
+
+Request (BDDP):
+- method: "AutoLock.getLogs"
+- targetDevice: String (Required)
+- token: String (Required)
+
+Response (BUDP): (Not Specified)
+
+---
+
+Method: AutoLock.getVersion
+Description: Get current firmware version and latest available version.
+
+Request (BDDP):
+- method: "AutoLock.getVersion"
+- targetDevice: String (Required)
+- token: String (Required)
+
+Response (BUDP):
+- data.version: String – Current firmware version
+- data.newVersion.versionId: String (Optional) – Latest version ID
+- data.newVersion.versionCode: String (Optional) – Latest version code
+- data.newVersion.fileSize: String (Optional) – File size
+
+---
+
+Method: AutoLock.startUpgrade
+Description: Trigger firmware upgrade with specified version.
+
+Request (BDDP):
+- method: "AutoLock.startUpgrade"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.versionId: String (Required)
+
+Response (BUDP):
+- data.isStarted: Boolean – Whether upgrade process has started
+
+
+=== CHUNK: Curtain.getState, open, close, stop ===
+
+Module: Curtain
+
+Method: Curtain.getState
+Description: Get current state of the curtain.
+
+Request (BDDP):
+- method: "Curtain.getState"
+- targetDevice: String (Required) – Device ID of the Curtain
+- token: String (Required) – Net token
+
+Response (BUDP): (Not specified in original doc)
+
+---
+
+Method: Curtain.open
+Description: Open the curtain.
+
+Request (BDDP):
+- method: "Curtain.open"
+- targetDevice: String (Required)
+- token: String (Required)
+
+Response (BUDP): (Not specified)
+
+---
+
+Method: Curtain.close
+Description: Close the curtain.
+
+Request (BDDP):
+- method: "Curtain.close"
+- targetDevice: String (Required)
+- token: String (Required)
+
+Response (BUDP): (Not specified)
+
+---
+
+Method: Curtain.stop
+Description: Stop curtain movement immediately.
+
+Request (BDDP):
+- method: "Curtain.stop"
+- targetDevice: String (Required)
+- token: String (Required)
+
+Response (BUDP): (Not specified)
+
+=== CHUNK: Curtain.getVersion, startUpgrade ===
+
+Module: Curtain
+
+Method: Curtain.getVersion
+Description: Get current and latest firmware version of the curtain device.
+
+Request (BDDP):
+- method: "Curtain.getVersion"
+- targetDevice: String (Required)
+- token: String (Required)
+
+Response (BUDP):
+- data.version: String – Current firmware version
+- data.newVersion.versionId: String (Optional) – New version ID
+- data.newVersion.versionCode: String (Optional) – New version code
+- data.newVersion.fileSize: String (Optional) – File size
+
+---
+
+Method: Curtain.startUpgrade
+Description: Start firmware upgrade.
+
+Request (BDDP):
+- method: "Curtain.startUpgrade"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.versionId: String (Required)
+
+Response (BUDP):
+- data.isStarted: Boolean – Whether upgrade has started

@@ -1,0 +1,344 @@
+=== CHUNK:Outlet.getState/setState/setDelay ===
+Module: Outlet
+
+1. Method: Outlet.getState  
+Description: Get the current state of the Outlet device  
+Use case: Query if the Outlet is open or closed, plus delay info and power data
+
+Request (BDDP):
+- method: "Outlet.getState"
+- targetDevice: (String, Required) Device ID of the Outlet
+- token: (String, Required) Network token of the Outlet
+
+Response (BUDP):
+- data.state: (String, Required) State of the outlet ["closed", "open"]
+- data.delay.on: (Integer, Required) Remaining Delay ON time (minutes)
+- data.delay.off: (Integer, Required) Remaining Delay OFF time (minutes)
+- data.power: (Integer, Optional) Current power usage; 0 if not supported
+- data.version: (String, Required) Firmware version
+- data.tz: (Integer, Required) Timezone [-12 ~ 12]
+Module: Outlet
+
+2. Method: Outlet.setState  
+Description: Set the outlet to on or off  
+Use case: Turn the outlet on or off remotely
+
+Request (BDDP):
+- method: "Outlet.setState"
+- targetDevice: (String, Required)
+- token: (String, Required)
+- params.state: (String, Required) Target state ["close", "open"]
+
+Response (BUDP):
+- data.state: (String, Required) Current state after setting ["closed", "open"]
+
+Module: Outlet
+
+3. Method: Outlet.setDelay  
+Description: Set a delay for outlet ON/OFF  
+Use case: Automatically control outlet with time delay
+
+Request (BDDP):
+- method: "Outlet.setDelay"
+- targetDevice: (String, Required)
+- token: (String, Required)
+- params.delayOn: (Integer, Optional) Delay ON in minutes, 0 = cancel
+- params.delayOff: (Integer, Optional) Delay OFF in minutes, 0 = cancel
+
+Response (BUDP):
+- data.delay.on: (Integer, Required) Remaining ON delay
+- data.delay.off: (Integer, Required) Remaining OFF delay
+
+
+
+
+
+=== CHUNK: Outlet.getSchedules/setSchedules/getVersion ===
+Module: Outlet
+
+4. Method: Outlet.getSchedules  
+Description: Retrieve schedule list of the Outlet  
+Use case: View ON/OFF automation schedules
+
+Request (BDDP):
+- method: "Outlet.getSchedules"
+- targetDevice: (String, Required)
+- token: (String, Required)
+
+Response (BUDP):
+- data[index].isValid: (Boolean, Required) Whether schedule is enabled
+- data[index].index: (Integer, Required) Schedule ID
+- data[index].on: (String, Optional) Turn ON time (HH:mm)
+- data[index].off: (String, Optional) Turn OFF time (HH:mm)
+- data[index].week: (Integer, Required) Days bitmask (Sun–Sat)
+
+Module: Outlet
+
+5. Method: Outlet.setSchedules  
+Description: Define or update schedules for the Outlet  
+Use case: Automate on/off timing
+
+Request (BDDP):
+- method: "Outlet.setSchedules"
+- targetDevice: (String, Required)
+- token: (String, Required)
+- params.sches: (Array<Schedule>, Required) Schedule map with up to 6 entries
+  - index: 0–5
+  - isValid: (Boolean) Enable/disable
+  - on: (String, Required) Time ON (HH:mm)
+  - off: (String, Required) Time OFF (HH:mm)
+  - week: (Integer, Required) Day bitmask (0–127)
+
+Response (BUDP): Same as Outlet.getSchedules
+
+Module: Outlet
+
+6. Method: Outlet.getVersion  
+Description: Get current and latest firmware version  
+Use case: Firmware version management
+
+Request (BDDP):
+- method: "Outlet.getVersion"
+- targetDevice: (String, Required)
+- token: (String, Required)
+
+Response (BUDP):
+- data.version: (String, Required) Current version
+- data.newVersion.versionId: (String, Optional)
+- data.newVersion.versionCode: (String, Optional)
+- data.newVersion.fileSize: (String, Optional)
+
+
+=== CHUNK: Outlet.startUpgrade/getActivityLogs/Callbacks ===
+Module: Outlet
+
+7. Method: Outlet.startUpgrade  
+Description: Start firmware upgrade process  
+Use case: Upgrade Outlet firmware remotely
+
+Request (BDDP):
+- method: "Outlet.startUpgrade"
+- targetDevice: (String, Required)
+- token: (String, Required)
+- params.versionId: (String, Required) Version ID to upgrade to
+
+Response (BUDP):
+- data.isStarted: (Boolean, Required) Whether upgrade has started
+
+Module: Outlet
+
+8. Method: Outlet.getActivityLogs  
+Description: Retrieve device activity logs  
+Use case: Historical state changes or alerts
+
+⚠️ Requires "DEVICE.HISTORICAL_DATA.READ" permission
+
+Request (BDDP):
+- method: "Outlet.getActivityLogs"
+- targetDevice: (String, Required)
+- token: (String, Required)
+- params.search.startDate: (String, Required) Format: YYYY-MM-DD
+- params.search.endDate: (String, Required) Format: YYYY-MM-DD
+- params.retrievalKey: (String, Optional)
+
+Response (BUDP):
+- data.logs[*].id: Record ID
+- data.logs[*].time: Timestamp
+- data.logs[*].data: Record data
+- data.retrievalKeys.next: (Optional) Pagination token
+
+Module: Outlet
+
+9. Callbacks  
+Description: Receive outlet state updates via MQTT or HTTP Callback  
+Use case: Push-based monitoring of outlet status
+
+Delivery method:
+- MQTT report topic
+- HTTP callback POST
+
+Payload: Same fields as Outlet.getState response
+
+
+=== CHUNK: PowerFailureAlarm.getState/Callback ===
+
+Module: PowerFailureAlarm
+
+1. Method: PowerFailureAlarm.getState  
+Description: Retrieve the last reported state of the Power Failure Alarm  
+Use case: Used to check the device status, battery, power supply, sound level, etc.
+
+Request (BDDP):
+- method: "PowerFailureAlarm.getState"
+- targetDevice: (String, Required) Device ID of the power failure alarm
+- token: (String, Required) Network token of the device
+
+Response (BUDP):
+- data.state.state: (String, Optional) Current state ["normal", "alert", "off"]
+- data.state.alertType: (String, Optional) Type of reminder
+- data.state.sound: (Integer, Required) Sound level
+- data.state.battery: (Integer, Required) Battery level [0–4]
+- data.state.powerSupply: (Boolean, Required) Is external power connected
+- data.state.beep: (Boolean, Required) Whether beep is enabled
+- data.state.mute: (Boolean, Required) Mute mode status
+- data.state.version: (String, Required) Firmware version
+- data.reportAt: (Date, Required) Time of report
+- data.deviceId: (String, Required) Device ID
+
+Module: PowerFailureAlarm
+
+2. Callbacks  
+Description: Push notifications for PowerFailureAlarm state updates  
+Use case: Use MQTT or HTTP callback to monitor alarm events or status changes in real-time
+
+Delivery method:
+- MQTT report topic
+- HTTP Callback POST endpoint
+
+Payload: Same as PowerFailureAlarm.getState response structure
+
+
+
+=== CHUNK: Siren.getState/setState ===
+
+Module: Siren
+
+1. Method: Siren.getState  
+Description: Get the current state of the siren device.
+
+Request (BDDP):
+- method: "Siren.getState"
+- targetDevice: (String, Required) Device ID of the siren
+- token: (String, Required) Network token of the siren
+
+Response (BUDP):
+- data.state: (String, Required) Current device state ["normal", "alert", "off"]
+- data.soundLevel: (Integer, Required) Volume level of the siren
+- data.battery: (Integer, Required) Battery level [0–4]
+- data.powerSupply: (String, Required) Power source ["battery", "usb"]
+- data.alarmDuation: (Integer, Required) Duration of alert in seconds
+
+Module: Siren
+
+2. Method: Siren.setState  
+Description: Start or stop the siren alarm.
+
+Request (BDDP):
+- method: "Siren.getState"
+- targetDevice: (String, Required) Device ID of the siren
+- token: (String, Required) Network token of the siren
+- params.state.alarm: (Boolean, Required) Set alert state — true to start alert, false to stop alert
+
+Response (BUDP):
+- data.state: (String, Required) Current device state ["normal", "alert", "off"]
+
+
+
+=== CHUNK: SmartRemoter.getState/ Callback ===
+Module: SmartRemoter
+
+1. Method: SmartRemoter.getState  
+Description: Get the last reported state of a Smart Remoter.
+
+Request (BDDP):
+- method: "SmartRemoter.getState"
+- targetDevice: (String, Required) Device ID of the Smart Remoter
+- token: (String, Required) Network token of the device
+- time: (Date, Required) Current timestamp
+
+Response (BUDP):
+- data.deviceId: (String, Required) Device ID
+- data.online: (Boolean, Required) Is the device online
+- data.reportAt: (Date, Required) Time of report
+- data.state.version: (String, Required) Firmware version
+- data.state.battery: (Integer, Required) Battery level [0–4]
+- data.state.beep: (Boolean, Required) Whether beep is enabled
+- data.state.devTemperature: (Integer, Required) Current device temperature
+
+Optional:
+- data.state.event: (Object, Optional) Last reported event
+  - keyMask: (Integer, Required) Triggered keys (bitmask, 0–7)
+  - type: (String, Required) Type of event ["Press", "LongPress"]
+
+Module: SmartRemoter
+
+2. Callback Notification  
+Description: Receive Smart Remoter status updates via MQTT or HTTP callback.
+
+Transport:
+- MQTT topic or HTTP Callback API
+
+Payload: Same structure as response from SmartRemoter.getState
+
+
+
+=== CHUNK:  SpeakerHub.getState/setWiFi ===
+
+Module: SpeakerHub
+
+1. Method: SpeakerHub.getState  
+Description: Retrieve current state of the SpeakerHub device.
+
+Request (BDDP):
+- method: "SpeakerHub.getState"
+- targetDevice: (String, Required) Device ID of the SpeakerHub
+- token: (String, Required) Network token of the device
+
+Response (BUDP):
+- data.version: (String, Required) Firmware version
+- data.wifi.enable: (Boolean, Required) Wi-Fi enabled status
+- data.wifi.ssid: (String, Required) Connected Wi-Fi SSID
+- data.wifi.ip: (String, Required) Wi-Fi IP address
+- data.wifi.gateway: (String, Required) Wi-Fi gateway
+- data.wifi.mask: (String, Required) Wi-Fi subnet mask
+- data.eth.enable: (Boolean, Required) Ethernet enabled status
+- data.options.volume: (Integer, Required) Global volume level
+- data.options.enableBeep: (Boolean, Required) Whether beep sound is enabled
+- data.options.mute: (Boolean, Required) Whether device is in mute mode
+Module: SpeakerHub
+
+2. Method: SpeakerHub.setWiFi  
+Description: Set Wi-Fi information when SpeakerHub is online.
+
+Request (BDDP):
+- method: "SpeakerHub.setWiFi"
+- targetDevice: (String, Required) Device ID of the SpeakerHub
+- token: (String, Required) Network token of the device
+- params.ssid: (String, Required) Target Wi-Fi SSID
+- params.password: (String, Required) Target Wi-Fi password
+
+Response (BUDP): None specified
+
+
+
+=== CHUNK: SpeakerHub.playAudio/setOption ===
+Module: SpeakerHub
+
+3. Method: SpeakerHub.playAudio  
+Description: Play a TTS message or tone immediately on SpeakerHub.
+
+Request (BDDP):
+- method: "SpeakerHub.playAudio"
+- targetDevice: (String, Required) Device ID of the SpeakerHub
+- token: (String, Required) Network token of the device
+- params.tone: (String, Optional) Predefined tone ["Emergency", "Alert", "Warn", "Tip"]
+- params.message: (String, Optional) TTS message to play
+- params.volume: (Integer, Optional) Volume to use (default to global if not set)
+- params.repeat: (Integer [0–10], Optional) Number of times to repeat audio
+
+Response (BUDP): None specified
+
+Module: SpeakerHub
+
+4. Method: SpeakerHub.setOption  
+Description: Modify SpeakerHub settings such as volume, beep, or mute mode.
+
+Request (BDDP):
+- method: "SpeakerHub.setOption"
+- targetDevice: (String, Required) Device ID of the SpeakerHub
+- token: (String, Required) Network token of the device
+- params.volume: (Integer, Optional) Global volume level
+- params.enableBeep: (Boolean, Optional) Enable or disable beep sound
+- params.mute: (Boolean, Optional) Enable or disable mute mode
+
+Response (BUDP): None specified

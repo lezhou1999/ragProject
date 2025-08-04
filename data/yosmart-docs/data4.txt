@@ -1,0 +1,118 @@
+=== CHUNK: Step 1: Get Access Credentials for Local API ===
+Steps to Work with Local API
+
+Important: The Local API is only available for Local Hubs and is not accessible via cloud.
+
+To use the Local API, access your Local Hub's settings in the YoLink app:
+- Go to [Local Hub] -> [Local Network] -> [Integrations] -> [Local API]
+- Here you can retrieve your local API Client ID and Client Secret
+
+The base server URL for local API access is:
+SVR_URL = http://{Your Local Hub IP Address}:1080
+
+These credentials and the local IP are necessary for all following requests.
+
+=== CHUNK: Step 2: Obtain Access Token via Local API ===
+
+Step 2: Obtain Access Token via Local API
+
+After obtaining the Client ID and Client Secret from the YoLink app, you can request an access token using the following HTTP POST request:
+
+curl -X POST \
+  -d "grant_type=client_credentials&client_id=${ClientId}&client_secret=${ClientSecret}" \
+  ${SVR_URL}/open/yolink/token
+
+Replace `${ClientId}`, `${ClientSecret}`, and `${SVR_URL}` with the actual values for your local hub.
+
+The returned access_token is required to call subsequent Local API endpoints.
+
+
+=== CHUNK: Step 3: Get Device List by Access Token ===
+
+Step 3: Get Device List by Access Token
+
+You can retrieve the list of devices managed by the local hub using the access token obtained in Step 2. Use the `Home.getDeviceList` method.
+
+Example request:
+
+curl --location --request POST '${SVR_URL}/open/yolink/v2/api' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer ${access_token}' \
+--data-raw '{
+  "method": "Home.getDeviceList"
+}'
+
+Example response:
+
+{
+  "code": "000000",
+  "time": 1739325898971,
+  "msgid": 1739325898971,
+  "method": "Home.getDeviceList",
+  "desc": "Success",
+  "data": {
+    "deviceId": "****4c010001****",
+    "name": "Door Sensor",
+    "token": "****2C89C9FE5C30509B9B6****",
+    "type": "DoorSensor"
+  }
+}
+
+This response provides the necessary deviceId and token required for controlling the device.
+
+=== CHUNK: Step 4: Control Devices with Device Token ===
+
+Step 4: Control Devices with Device Token
+
+After obtaining the deviceId and token, you can control the device by sending commands to the Local API using the appropriate method, such as `DoorSensor.getState`.
+
+Example request:
+
+curl --location --request POST '${SVR_URL}/open/yolink/v2/api' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer ${access_token}' \
+--data-raw '{
+  "method": "DoorSensor.getState",
+  "targetDevice": "****4c010001****",
+  "token": "****2C89C9FE5C30509B9B6****",
+  "params": {}
+}'
+
+Example response:
+
+{
+  "code": "000000",
+  "time": 1739326633594,
+  "msgid": 1739326633594,
+  "method": "DoorSensor.getState",
+  "desc": "Success",
+  "data": {
+    "online": false,
+    "state": {
+      "state": "closed",
+      "battery": 4,
+      "delay": 0,
+      "version": "041e",
+      "openRemindDelay": 10,
+      "alertInterval": 5
+    },
+    "reportAt": "2025-02-10T04:00:22.818Z"
+  }
+}
+
+=== CHUNK: Step 5: Subscribe to Events via MQTT from Local Devices ===
+
+Step 5: Subscribe to Device Events via MQTT
+
+To receive real-time events or status reports from YoSmart devices on the local network, subscribe to the appropriate MQTT topic using `mosquitto_sub`.
+
+Example command:
+
+mosquitto_sub \
+  -u ${ClientId} \
+  -P ${ClientSecret or AccessToken} \
+  -p 18080 \
+  -h ${Your Local Hub IP Address} \
+  -t ylsubnet/${sub-net Id}/+/report
+
+Replace the placeholders with your actual credentials and network configuration. This subscription allows the local client to receive push reports from devices in real time, without cloud involvement.

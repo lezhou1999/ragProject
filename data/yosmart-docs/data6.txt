@@ -1,0 +1,30 @@
+=== CHUNK: Data Packet Structure in YoSmart API ===
+
+Data Packet Structure in YoSmart API
+
+The YoSmart API uses a structured data exchange format called Basic Data Packet for communication between the API client and the API server.
+
+There are two types of data packets:
+
+1. BDDP (Basic Downlink Data Packet): Sent from the client to the server.
+2. BUDP (Basic Uplink Data Packet): Sent from the server to the client.
+
+Basic Downlink Data Packet (BDDP) includes the following fields:
+
+- time (Timestamp, Required): Current timestamp of the request.
+- method (String, Required): The method name being invoked. See "Methods" section for supported methods.
+- msgid (String, Optional): Unique identifier of this BDDP. BUDP will return it; default is the current timestamp.
+- targetDevice (String, Optional): The deviceId being controlled. Required when sending commands to devices.
+- token (String, Optional): The token for the targetDevice. Also required when controlling devices.
+- params (Object, Optional): Additional parameters specific to the method.
+
+Basic Uplink Data Packet (BUDP) includes the following fields:
+
+- time (Timestamp, Required): Timestamp of the response.
+- method (String, Required): The method that was invoked, same as in BDDP.
+- msgid (String, Required): ID to correlate with the original BDDP request.
+- code (String, Required): Status code of the response. '000000' means success. Refer to the "Status Code" section for more codes.
+- desc (String, Optional): Description of the status code.
+- data (Object, Optional): Result data returned by the API method.
+
+Tip: The "method" field in BDDP identifies the specific API function being called, while "params" provides the necessary input for that function. Refer to the API's Methods module for exact parameter definitions.

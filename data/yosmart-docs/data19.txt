@@ -1,0 +1,351 @@
+=== CHUNK: DoorSensor.getLastReport, Callbacks ===
+Module: DoorSensor
+
+Method: DoorSensor.getLastReport
+Description: Retrieve the most recent state reported by the door sensor.
+
+Request (BDDP):
+- method: "DoorSensor.getLastReport"
+- targetDevice: String (Required) – Device ID of this device
+- token: String (Required) – Net token of this device
+
+Response (BUDP):
+- data.battery: String – Battery level, "Low" or "Normal"
+- data.state: String – Current state, "Open" or "Close"
+- data.reportTime: Timestamp – Reported time
+- data.reportType: String – "Report", "StatusChange", or "Alert"
+
+---
+
+Method: Callbacks
+Description: Data can be received via HTTP Callback API or MQTT topic.
+
+Response (BUDP):
+- data.battery: String – Battery level, "Low" or "Normal"
+- data.state: String – Current state, "Open" or "Close"
+
+
+=== CHUNK: DoorSensor.getVersion, startUpgrade ===
+
+Module: DoorSensor
+
+Method: DoorSensor.getVersion
+Description: Retrieve current and latest firmware version.
+
+Request (BDDP):
+- method: "DoorSensor.getVersion"
+- targetDevice: String (Required)
+- token: String (Required)
+
+Response (BUDP):
+- data.version: String – Current firmware version
+- data.newVersion.versionId: String (Optional) – ID of the latest version
+- data.newVersion.versionCode: String (Optional) – Code of the latest version
+- data.newVersion.fileSize: String (Optional) – Size of the latest firmware file
+
+---
+
+Method: DoorSensor.startUpgrade
+Description: Start the firmware upgrade process.
+
+Request (BDDP):
+- method: "DoorSensor.startUpgrade"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.versionId: String (Required) – Version ID to upgrade to
+
+Response (BUDP):
+- data.isStarted: Boolean – Whether upgrade has started
+
+=== CHUNK: ElectronicFence.getLastReport, getState, Callbacks  ===
+Module: ElectronicFence
+
+Method: ElectronicFence.getLastReport
+Description: Get the most recent state reported by the electronic fence.
+
+Request (BDDP):
+- method: "ElectronicFence.getLastReport"
+- targetDevice: String (Required) – Device ID of the fence
+- token: String (Required) – Net token of the device
+
+Response (BUDP):
+- data.tamper: Boolean – Whether the device has been tampered
+- data.state: String – Current state, either "alert" or "online"
+- data.reportTime: Timestamp – Time the report was generated
+- data.reportType: String – Type of report: "Report", "StatusChange", or "Alert"
+
+---
+
+Method: ElectronicFence.getState
+Description: Get the current real-time state of the device.
+
+Request (BDDP):
+- method: "ElectronicFence.getVersion"
+- targetDevice: String (Required)
+- token: String (Required)
+
+Response (BUDP):
+- data.tamper: Boolean – Tamper status
+- data.state: String – "alert" or "online"
+
+---
+
+Method: Callbacks
+Description: Receive state changes via HTTP Callback or MQTT topic.
+
+Response (BUDP):
+- data.tamper: Boolean – Tamper status
+- data.state: String – Current state, "alert" or "online"
+
+=== CHUNK: ElectronicFence.getVersion, startUpgrade  ===
+
+Module: ElectronicFence
+
+Method: ElectronicFence.getVersion
+Description: Get current and latest available firmware information.
+
+Request (BDDP):
+- method: "ElectronicFence.getVersion"
+- targetDevice: String (Required)
+- token: String (Required)
+
+Response (BUDP):
+- data.version: String – Current firmware version
+- data.newVersion.versionId: String (Optional) – ID of the latest firmware version
+- data.newVersion.versionCode: String (Optional) – Version code
+- data.newVersion.fileSize: String (Optional) – Firmware file size
+
+---
+
+Method: ElectronicFence.startUpgrade
+Description: Initiate firmware upgrade process for the device.
+
+Request (BDDP):
+- method: "ElectronicFence.startUpgrade"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.versionId: String (Required) – Target firmware version ID
+
+Response (BUDP):
+- data.isStarted: Boolean – Whether upgrade has begun
+
+
+=== CHUNK: GasSensor.getLastReport & Callbacks ===
+Module: GasSensor
+
+Method: GasSensor.getLastReport
+Description: Retrieve the latest reported state from the gas sensor.
+
+Request (BDDP):
+- method: "GasSensor.getLastReport"
+- targetDevice: String (Required) – Device ID of the gas sensor
+- token: String (Required) – Network token of the gas sensor
+
+Response (BUDP):
+- data.battery: String – Battery level
+- data.state: String – Current gas detection state
+- data.reportTime: Timestamp – Time of the report
+- data.reportType: String – Type of report (e.g., Report, StatusChange, Alert)
+
+---
+
+Method: Callbacks
+Description: Receive gas sensor reports via HTTP Callback or MQTT topic.
+
+Response (BUDP):
+- data.battery: String – Battery level
+- data.state: String – Current state (e.g., normal, gasAlarm, lowBattery)
+
+
+=== CHUNK: GasSensor.getVersion & startUpgrade ===
+
+Module: GasSensor
+
+Method: GasSensor.getVersion
+Description: Retrieve firmware version info for the gas sensor.
+
+Request (BDDP):
+- method: "GasSensor.getVersion"
+- targetDevice: String (Required)
+- token: String (Required)
+
+Response (BUDP):
+- data.version: String – Current firmware version
+- data.newVersion.versionId: String (Optional) – Latest version ID
+- data.newVersion.versionCode: String (Optional) – Latest version code
+- data.newVersion.fileSize: String (Optional) – Size of the firmware file
+
+---
+
+Method: GasSensor.startUpgrade
+Description: Start firmware upgrade process for the gas sensor.
+
+Request (BDDP):
+- method: "GasSensor.startUpgrade"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.versionId: String (Required) – Target version ID to upgrade
+
+Response (BUDP):
+- data.isStarted: Boolean – Whether upgrade process has started
+
+=== CHUNK:  InfraredForward.getState, learnCode, sendCode ===
+Module: InfraredForward
+
+Method: InfraredForward.getState
+Description: Retrieve current state of the Infrared Forward device.
+
+Request (BDDP):
+- method: "InfraredForward.getState"
+- targetDevice: String (Required) – Device ID of the InfraredForward
+- token: String (Required) – Network token of the InfraredForward
+
+Response (BUDP):
+(Same as InfraredForward.getVersion)
+
+---
+
+Method: InfraredForward.learnCode
+Description: Learn and record a remote control's infrared code into a virtual panel.
+
+Request (BDDP):
+- method: "InfraredForward.open"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.panelIndex: Integer (Required) – Index of the remote panel (0–3)
+- params.buttonIndex: Integer (Required) – Index of the button on the panel (0–15)
+
+Response (BUDP):
+- data.isSuccess: Boolean – Whether the code was successfully learned
+
+---
+
+Method: InfraredForward.sendCode
+Description: Send an infrared code that was previously learned.
+
+Request (BDDP):
+- method: "InfraredForward.sendCode"
+- targetDevice: String (Required)
+- tok
+
+
+=== CHUNK:  InfraredForward.getVersion, startUpgrade ===
+Module: InfraredForward
+
+Method: InfraredForward.getVersion
+Description: Get firmware version of the Infrared Forward device.
+
+Request (BDDP):
+- method: "InfraredForward.getVersion"
+- targetDevice: String (Required)
+- token: String (Required)
+
+Response (BUDP):
+- data.version: String – Current firmware version
+- data.newVersion.versionId: String (Optional) – ID of the latest version
+- data.newVersion.versionCode: String (Optional) – Code of the latest version
+- data.newVersion.fileSize: String (Optional) – File size of the firmware
+
+---
+
+Method: InfraredForward.startUpgrade
+Description: Start a firmware upgrade for the Infrared Forward device.
+
+Request (BDDP):
+- method: "InfraredForward.startUpgrade"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.versionId: String (Required) – Version ID to upgrade to
+
+Response (BUDP):
+- data.isStarted: Boolean – Whether the upgrade has started
+
+
+
+=== CHUNK: LeakSensor   ===
+
+Module: LeakSensor
+
+Method: LeakSensor.getLastReport
+Description: Get the last reported state of the leak sensor.
+
+Request (BDDP):
+- method: "LeakSensor.getLastReport"
+- targetDevice: String (Required) – Device ID of this device
+- token: String (Required) – Network token of this device
+
+Response (BUDP):
+- data.battery: String – Battery status of the device
+- data.state: String – Current leak state
+- data.reportTime: Timestamp – Time of report
+- data.reportType: String – Type of report: Report / StatusChange / Alert
+
+---
+
+Method: LeakSensor.getVersion
+Description: Get firmware version of the leak sensor.
+
+Request (BDDP):
+- method: "LeakSensor.getVersion"
+- targetDevice: String (Required)
+- token: String (Required)
+
+Response (BUDP):
+- data.version: String – Current firmware version
+- data.newVersion.versionId: String (Optional) – ID of the newest version
+- data.newVersion.versionCode: String (Optional) – Code of the newest version
+- data.newVersion.fileSize: String (Optional) – Size of the newest firmware
+
+---
+
+Method: LeakSensor.startUpgrade
+Description: Start a firmware upgrade for the leak sensor.
+
+Request (BDDP):
+- method: "LeakSensor.startUpgrade"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.versionId: String (Required) – Version ID to upgrade to
+
+Response (BUDP):
+- data.isStarted: Boolean – Whether the upgrade has started
+
+---
+
+Method: LeakSensor Callback
+Description: Callback report via MQTT or HTTP.
+
+Response (BUDP):
+- data.battery: String – Battery status
+- data.state: String – Current state of the leak sensor
+
+
+=== CHUNK: Lock.getState / Lock.lock ===
+
+Module: Lock
+
+Method: Lock.getState
+Description: Retrieve the current status and battery level of the Lock device.
+
+Request (BDDP):
+- method: "Lock.getState"
+- targetDevice: String (Required) – Device ID of the Lock
+- token: String (Required) – Network token of the Lock
+
+Response (BUDP):
+- data.state: String – Current lock state; possible value: "Locked"
+- data.battery: String – Current battery level of the lock (Voltage-based; will change to percentage later)
+
+---
+
+Method: Lock.lock
+Description: Command the Lock device to lock.
+
+Request (BDDP):
+- method: "Lock.lock"
+- targetDevice: String (Required) – Device ID of the Lock
+- token: String (Required) – Network token of the Lock
+
+Response (BUDP):
+- data.state: String – Lock state after operation; expected value: "Locked"
+- data.battery: String – Current battery level of the lock

@@ -1,0 +1,472 @@
+=== CHUNK: Thermostat.getState ===
+Module: Thermostat
+
+1. Method: Thermostat.getState  
+Description: Get the current state of the Thermostat device.  
+Use case: Retrieve real-time information including temperature, humidity, mode, and advanced operational parameters.
+
+Request (BDDP):
+- method: "Thermostat.getState"
+- targetDevice (String, Necessary): DeviceId of the Thermostat you use
+- token (String, Necessary): Net token of the Thermostat you use
+
+Response (BUDP):
+- data.state.tempMode (String, Necessary): Current temperature unit, ["c", "f"]
+- data.state.temperature (Float, Necessary): Current temperature in Celsius
+- data.state.humidity (Float, Necessary): Current humidity in %RH
+- data.state.lowTemp (Float, Necessary): Current lower temperature in Celsius
+- data.state.highTemp (Float, Necessary): Current upper temperature in Celsius
+- data.state.mode (String, Necessary): Current mode, ['cool','heat','auto','off']
+- data.state.fan (String, Necessary): Fan mode, ['on','auto']
+- data.state.sche (String, Necessary): Schedule mode, ['run','hold']
+- data.state.running (String, Necessary): Running state, ['cool','heat','idle']
+- data.state.sensor1 (Float, Optional): Sensor 1 temperature
+- data.state.sensor2 (Float, Optional): Sensor 2 temperature
+- data.state.other.auxiliaryHeat (Boolean, Optional): Is auxiliary heat running
+- data.state.other.secondStage (Boolean, Optional): Is second stage running
+- data.state.other.drRunning (Boolean, Optional): Is DR Event running
+- data.properties.minRuntime (Object, Necessary): Minimum running time
+- data.properties.coolLimit (Object, Necessary): Minimum cooling temperature
+- data.properties.heatLimit (Object, Necessary): Maximum heating temperature
+- data.properties.mute (Boolean, Optional): Is mute enabled
+- data.properties.menuLock (Boolean, Optional): Is menu locked
+- data.properties.auxStandby (Integer, Optional): AUX standby time in minutes
+- data.properties.auxMaxSpan (Integer, Optional): AUX max duration in hours
+- data.properties.auxThreshold (Float, Optional): AUX temperature threshold
+- data.properties.stage2Standby (Integer, Optional): 2nd stage standby in minutes
+- data.properties.stage2MaxSpan (Integer, Optional): 2nd stage max time in hours
+- data.properties.stage2Threshold (Float, Optional): 2nd stage temperature threshold
+- data.properties.master (String, Optional): Running source, ["local","sensor1","sensor2"]
+- data.eco (Object, Necessary): ECO configuration
+- data.version (String, Necessary): Firmware version
+- data.tz (Integer, Necessary): Timezone (-12 to 12)
+
+
+=== CHUNK: Thermostat.setState/getSchedules / setSchedules ===
+Module: Thermostat
+
+2. Method: Thermostat.setState  
+Description: Set the operational mode, temperature, fan, and schedule settings of the Thermostat.
+
+Request (BDDP):
+- method: "Thermostat.setState"
+- targetDevice (String, Necessary): DeviceId of the Thermostat
+- token (String, Necessary): Net token of the Thermostat
+- params.lowTemp (Float, Optional): Lower temperature in Celsius
+- params.highTemp (Float, Optional): Upper temperature in Celsius
+- params.mode (String, Optional): Mode ['cool','heat','auto','off']
+- params.fan (String, Optional): Fan mode ['on','auto']
+- params.sche (String, Optional): Schedule mode ['run','hold']
+
+Response (BUDP):
+- data.state (String, Necessary): State of device, ["closed","open"]
+
+Module: Thermostat
+
+3. Method: Thermostat.getSchedules  
+Description: Retrieve scheduled temperature points for each weekday.
+
+Request (BDDP):
+- method: "Thermostat.getSchedules"
+- targetDevice (String, Necessary): DeviceId of the Thermostat
+- token (String, Necessary): Net token of the Thermostat
+
+Response (BUDP):
+- data.sches (Array, Necessary): Schedule for Monday to Saturday
+  - data.sches[weekday][index].time (String): HH:MM format
+  - data.sches[weekday][index].lowTemp (Float): Lower temperature
+  - data.sches[weekday][index].highTemp (Float): Upper temperature
+
+---
+
+4. Method: Thermostat.setSchedules  
+Description: Configure schedule points for each day (4 points/day).
+
+Request (BDDP):
+- method: "Thermostat.setSchedules"
+- targetDevice (String, Necessary): DeviceId of the Thermostat
+- token (String, Necessary): Net token of the Thermostat
+- params.sches (Array, Necessary): Schedule settings from Monday to Saturday
+  - time (String): HH:MM format
+  - lowTemp (Float): Lower temperature
+  - highTemp (Float): Upper temperature
+
+Response (BUDP):  
+Same as getSchedules
+
+
+
+=== CHUNK: Thermostat.setTimeZone/setECO   ===
+Module: Thermostat
+
+5. Method: Thermostat.setTimeZone  
+Description: Set the timezone of the Thermostat (important for schedule accuracy).
+
+Request (BDDP):
+- method: "Thermostat.setTimeZone"
+- targetDevice (String, Necessary): DeviceId
+- token (String, Necessary): Net token
+- params.tz (Integer, Necessary): Timezone (-12 ~ +12)
+
+Response (BUDP):
+- data.tz (Integer): Set timezone
+
+---
+
+6. Method: Thermostat.setECO  
+Description: Configure ECO mode temperature offsets and state.
+
+Request (BDDP):
+- method: "Thermostat.setECO"
+- targetDevice (String, Necessary): DeviceId
+- token (String, Necessary): Net token
+- params.mode (String, Optional): ECO state ["on","off"]
+- params.lowTemp (Float, Optional): Offset for low temperature
+- params.highTemp (Float, Optional): Offset for high temperature
+
+Response (BUDP):
+- data.eco (Object): Current ECO setting
+
+
+
+
+=== CHUNK: Thermostat.setProperties / setCorrection/getVersion  ===
+
+Module: Thermostat
+
+7. Method: Thermostat.setProperties  
+Description: Set detailed runtime properties such as heating/cooling thresholds and delay intervals.
+
+Request (BDDP):
+- method: "Thermostat.setProperties"
+- targetDevice (String, Necessary): DeviceId
+- token (String, Necessary): Net token
+- params: Includes minRuntime, heatLimit, coolLimit, mute, aux settings, stage2 settings, master mode
+
+Response (BUDP):
+- data.minRuntime, data.coolLimit, data.heatLimit
+
+---
+
+8. Method: Thermostat.setCorrection  
+Description: Adjust temperature and humidity reading correction.
+
+Request (BDDP):
+- method: "Thermostat.setCorrection"
+- targetDevice (String, Necessary)
+- token (String, Necessary)
+- params.temperature (Float, Optional): ±5.0 ℃
+- params.humidity (Integer, Optional): ±10 %
+
+Response (BUDP):
+- data.temperature, data.humidity
+
+---
+
+9. Method: Thermostat.getVersion  
+10. Method: Thermostat.startUpgrade
+
+Purpose: Get firmware info / Start upgrade
+
+Request (BDDP):
+- method: "Thermostat.getVersion" or "Thermostat.startUpgrade"
+- targetDevice (String, Necessary)
+- token (String, Necessary)
+- params.versionId (String, Required for upgrade)
+
+Response (BUDP):
+- data.version
+- data.newVersion: versionId, versionCode, fileSize
+- data.isStarted (Boolean): Is upgrading started
+
+
+=== CHUNK: Thermostat.getActivityLogs/Callback   ===
+Module: Thermostat
+
+11. Method: Thermostat.getActivityLogs  
+Description: Query activity logs for thermostat device
+
+Request (BDDP):
+- method: "Thermostat.getActivityLogs"
+- targetDevice (String, Necessary)
+- token (String, Necessary)
+- params.search.startDate, endDate (String): "YYYY-MM-DD"
+- params.retrievalKey (String, Optional)
+
+Response (BUDP):
+- data.logs[*]: id, time, data
+- data.retrievalKeys.next: for pagination
+
+---
+
+12. Method: Thermostat.Callbacks  
+Description: Real-time state update via HTTP callback or MQTT report
+
+Response (BUDP):
+<Same as Thermostat.getState>
+
+
+
+=== CHUNK: VibrationSensor.getState / Callback ===
+
+Module: VibrationSensor
+
+1. Method: VibrationSensor.getState  
+Description: Retrieve the current state of a Vibration Sensor, including battery, vibration, and alert information.
+
+Request (BDDP):
+- method: "VibrationSensor.getState"
+- targetDevice (String, Necessary): DeviceId of the Sensor
+- token (String, Necessary): Net token of the Sensor
+
+Response (BUDP):
+- data.state.online (Boolean): Is the device currently online
+- data.state.state (String): State of device ["normal", "alert"]
+- data.state.battery (String): Battery level, 0 (empty) to 4 (full)
+- data.state.alertInterval (Integer, Optional): Interval of continuous alert
+- data.state.noVibrationDelay (Integer, Optional): Time delay before entering no-vibration state
+- data.state.version (String): Firmware version of the device
+- data.reportAt (Date): Time the state was reported
+- data.deviceId (String): Unique ID of the device
+
+---
+
+2. Callback Support  
+Description: You can receive real-time updates of the vibration sensor through HTTP callback or MQTT topic.
+
+Response (BUDP):
+<Same as VibrationSensor.getState>
+
+=== CHUNK: WaterDepthSensor.getState/Callback ===
+Module: WaterDepthSensor
+
+1. Method: WaterDepthSensor.getState  
+Description: Get the current status of the Water Depth Sensor, including depth, alarms, battery, and settings.
+
+Request (BDDP):
+- method: "WaterDepthSensor.getState"
+- targetDevice (String, Necessary): DeviceId of the Sensor
+- token (String, Necessary): Net token of the Sensor
+
+Response (BUDP):
+- data.state.online (Boolean): Whether the device is currently online
+- data.state.alarm.highAlarm (Boolean): High depth alarm triggered
+- data.state.alarm.lowAlarm (Boolean): Low depth alarm triggered
+- data.state.alarm.detectorError (Boolean): Detector or probe error state
+- data.state.alarmSettings.standby (Integer): Standby duration in seconds [0 ~ 7200]
+- data.state.alarmSettings.interval (Integer): Report interval in minutes [10 ~ 240]
+- data.state.alarmSettings.high (Integer): High depth threshold (‰ of range) [0 ~ 1000]
+- data.state.alarmSettings.low (Integer): Low depth threshold (‰ of range) [0 ~ 1000]
+- data.state.battery (Integer): Battery level [0 (empty) ~ 4 (full)]
+- data.state.waterDepth (Integer): Water depth percentage ×10
+- data.state.reportInterval (Integer): Report interval in minutes [10 ~ 240]
+- data.state.version (String): Firmware version
+- data.reportAt (Date): Timestamp of the report
+- data.deviceId (String): Unique ID of the device
+
+Note:
+To convert water depth into actual value (unit same as range):
+Water Depth = (range × waterDepth / 1000) / density
+(range and density are stored in the app, not accessible via API)
+
+---
+
+2. Callback Support  
+Description: You can receive real-time updates via HTTP callback or MQTT topic.
+
+Response (BUDP):
+<Same as WaterDepthSensor.getState>
+
+=== CHUNK: WaterDepthSensor.setAttributes ===
+Module: WaterDepthSensor
+
+3. Method: WaterDepthSensor.setAttributes  
+Description: Configure alarm thresholds and reporting intervals for the Water Depth Sensor.
+
+Request (BDDP):
+- method: "WaterDepthSensor.setSettings"
+- targetDevice (String, Necessary): DeviceId of the Sensor
+- token (String, Necessary): Net token of the Sensor
+- params.alarmSettings.standby (Integer): [0 ~ 7200] seconds before standby
+- params.alarmSettings.interval (Integer): [10 ~ 240] minutes reporting interval
+- params.alarmSettings.high (Integer): High alarm threshold (‰ of range)
+- params.alarmSettings.low (Integer): Low alarm threshold (‰ of range)
+
+Response (BUDP):
+<No additional response fields specified>
+
+
+=== CHUNK: WaterMeterController.getState  ===
+
+Module: WaterMeterController
+
+1. Method: WaterMeterController.getState  
+Description: Retrieve the current state of the Water Meter Controller including valve state, meter readings, alarms, and attributes.
+
+Request (BDDP):
+- method: "WaterMeterController.getState"
+- targetDevice (String, Necessary): DeviceId of the controller
+- token (String, Necessary): Net token of the controller
+
+Response (BUDP):
+- data.state.valve (String): Valve state, ["close", "open"]
+- data.state.meter (Integer): Meter reading
+- data.state.waterFlowing (Boolean): Is water currently flowing
+- data.alarm.openReminder (Boolean): Alarm for open valve reminder
+- data.alarm.leak (Boolean): Leak alarm
+- data.alarm.amountOverrun (Boolean): Usage amount exceeds limit
+- data.alarm.durationOverrun (Boolean): Usage duration exceeds limit
+- data.alarm.valveError (Boolean): Valve error alarm
+- data.alarm.reminder (Boolean): Repeat reminder alarm
+- data.alarm.freezeError (Boolean): Freeze alarm
+- data.battery (Integer): Battery level [0 ~ 4]
+- data.powerSupply (String): Power supply source, ["battery", "PowerLine"]
+- data.valveDelay.on / off (Integer): Remaining time for delay ON/OFF (minutes, 0 = off)
+
+Attributes:
+- data.attributes.openReminder (Integer): Open reminder duration (min)
+- data.attributes.meterUnit (Integer): Meter unit: 0-GAL, 1-CCF, 2-M3, 3-L
+- data.attributes.alertInterval (Integer): Alert interval (min)
+- data.attributes.meterStepFactor (Integer): Meter accuracy
+- data.attributes.leakLimit (Float): Leak threshold
+- data.attributes.autoCloseValve (Boolean): Auto-close valve on leak
+- data.attributes.overrunAmountACV (Boolean): Auto-close valve on usage overrun (amount)
+- data.attributes.overrunDurationACV (Boolean): Auto-close valve on usage overrun (duration)
+- data.attributes.leakPlan (String): Leak detection mode, ["on", "off", "schedule"]
+- data.attributes.overrunAmount (Float): Overrun amount threshold
+- data.attributes.overrunDuration (Integer): Overrun duration threshold (min)
+- data.attributes.freezeTemp (Float): Freeze temperature (Celsius)
+
+Usage & Info:
+- data.recentUsage.amount (Integer): Recent usage in selected meter unit
+- data.recentUsage.duration (Integer): Duration of recent usage (min)
+- data.dailyUsage (Integer): Daily usage
+- data.temperature (Float): Current temperature (Celsius)
+- data.version (String): Firmware version
+- data.tz (Integer): Device time zone [-12 ~ 12]
+
+
+
+=== CHUNK:WaterMeterController.setState/ setMeterAttributes  ===
+Module: WaterMeterController
+
+2. Method: WaterMeterController.setState  
+Description: Control the valve state (open or close) of the Water Meter Controller.
+
+Request (BDDP):
+- method: "WaterMeterController.setState"
+- targetDevice (String, Necessary): DeviceId of the Water Meter Controller
+- token (String, Necessary): Net token of the controller
+- params.valve (String, Necessary): Valve state to set, ["close", "open"]
+
+---
+
+3. Method: WaterMeterController.setMeterAttributes  
+Description: Set configurable attributes of the Water Meter Controller for leak detection, alarms, and display.
+
+Request (BDDP):
+- method: "WaterMeterController.setMeterAttributes"
+- targetDevice (String, Necessary): DeviceId of the controller
+- token (String, Necessary): Net token of the controller
+
+params.attributes (Optional Fields):
+- openReminder (Integer): Open reminder time (min)
+- meterUnit (Integer): 0-GAL, 1-CCF, 2-M3, 3-L
+- alertInterval (Integer): Alert interval (min)
+- meterStepFactor (Integer): Measurement accuracy
+- leakLimit (Float): Leak threshold in unit
+- autoCloseValve (Boolean): Auto-close valve if leak occurs
+- overrunAmountACV (Boolean): Auto-close on overrun (amount)
+- overrunDurationACV (Boolean): Auto-close on overrun (duration)
+- leakPlan (String): Leak detection plan ["on", "off", "schedule"]
+- overrunAmount (Float): Usage overrun amount
+- overrunDuration (Integer): Duration overrun limit
+- freezeTemp (Float): Freeze alarm threshold temperature
+
+
+
+=== CHUNK: WaterMeterController.getValveSchedules  ===
+Module: WaterMeterController
+
+4. Method: WaterMeterController.getValveSchedules  
+Description: Retrieve the valve schedule configuration for the Water Meter Controller.
+
+Request (BDDP):
+- method: "Manipulator.getSchedules"
+- targetDevice (String, Necessary): DeviceId of the Water Meter Controller
+- token (String, Necessary): Net token of the controller
+
+Response (BUDP):
+- data[index].isValid (Boolean): Whether the schedule is enabled
+- data[index].index (Integer): Schedule index
+- data[index].on (String): Time to open valve (HH:mm), optional
+- data[index].off (String): Time to close valve (HH:mm), optional
+- data[index].week (Integer): Bitmask of active days [Sunday to Saturday]
+
+
+
+=== CHUNK: WaterMeterController.setValveSchedules   ===
+Module: WaterMeterController
+
+5. Method: WaterMeterController.setValveSchedules  
+Description: Configure valve open/close schedules for weekdays on Water Meter Controller.
+
+Request (BDDP):
+- method: "Manipulator.setSchedules"
+- targetDevice (String, Necessary): DeviceId of the Water Meter Controller
+- token (String, Necessary): Net token of the controller
+- params.sches (Array<Schedule>): Schedule list for weekdays (index "0" to "5")
+
+Each params.sches[index] includes:
+- isValid (Boolean): Whether the schedule is enabled
+- index (Integer): Schedule index
+- on (String): Time to open valve (HH:mm)
+- off (String): Time to close valve (HH:mm)
+- week (Integer): Bitmask of active weekdays (Sunday to Saturday)
+
+=== CHUNK: WaterMeterController.getLeakSchedules/setLeakSchedules/Callback ===
+
+Module: WaterMeterController
+
+6. Method: WaterMeterController.getLeakSchedules  
+Description: Retrieve configured leak detection schedules.
+
+Request (BDDP):
+- method: "Manipulator.getSchedules"
+- targetDevice (String, Necessary): DeviceId of the Water Meter Controller
+- token (String, Necessary): Net token of the controller
+
+Response (BUDP):
+- data[index].isValid (Boolean): Is the schedule active
+- data[index].index (Integer): Index of the leak schedule
+- data[index].on (String): Leak detection start time (optional, HH:mm)
+- data[index].off (String): Leak detection end time (optional, HH:mm)
+- data[index].week (Integer): Weekday bitmask
+- data[index].leakLimit (Integer): Leak threshold value in meter units
+
+Module: WaterMeterController
+
+7. Method: WaterMeterController.setLeakSchedules  
+Description: Configure leak detection schedules and thresholds.
+
+Request (BDDP):
+- method: "Manipulator.setSchedules"
+- targetDevice (String, Necessary): DeviceId of the Water Meter Controller
+- token (String, Necessary): Net token of the controller
+- params.sches (Array<Schedule>): Schedule list (index from "0" to "5")
+
+Each params.sches[index] includes:
+- isValid (Boolean): Whether this schedule is active
+- index (Integer): Index ID of this schedule
+- on (String): Leak detection start time (HH:mm)
+- off (String): Leak detection end time (HH:mm)
+- week (Integer): Mask of days (0–6)
+- leakLimit (Integer, Optional): Threshold for leak detection in meter units
+
+---
+
+8. Method: Callbacks  
+Description: WaterMeterController will report data changes via HTTP Callback or MQTT report topic.
+
+Format:
+- Same as WaterMeterController.getState response structure.

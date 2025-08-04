@@ -1,0 +1,127 @@
+=== CHUNK: Methods: Home.getDeviceList & Home.getGeneralInfo ===
+Methods – Home Module (UAC Only)
+
+Note: These methods are only available to UAC-authenticated clients.
+
+1. Home.getDeviceList
+
+This method retrieves the list of devices associated with the YoLink Home that is linked to the User Access Credential (UAC).
+
+Request Format (BDDP):
+- method: "Home.getDeviceList"
+
+Response Format (BUDP):
+The response includes a list of devices, each with the following fields:
+
+- data.devices[*].deviceId (String, Required): Unique ID of the device
+- data.devices[*].deviceUUID (String, Required): UUID of the device
+- data.devices[*].token (String, Required): Network token for device control
+- data.devices[*].name (String, Required): Device product name
+- data.devices[*].type (String, Required): Type of device, such as "Hub", which determines applicable methods (e.g., Hub.*)
+
+2. Home.getGeneralInfo
+
+This method retrieves basic general information about the home associated with the current UAC.
+
+Request Format (BDDP):
+- method: "Home.getGeneralInfo"
+
+Response Format (BUDP):
+- data.id (String, Required): Unique ID of the home
+
+These methods are essential for initializing device control workflows and retrieving contextual identifiers such as the Home ID.
+
+=== CHUNK: Manage.addYoLinkDevice & Manage.delYoLinkDevice ===
+Methods – Manage (CSID Only)
+
+1. Manage.addYoLinkDevice
+
+Purpose: Add a YoLink device using its SN code (found on the QR code) and receive net token.
+
+Request (BDDP):
+- method: "Manage.addYoLinkDevice"
+- time: <current timestamp>
+- params.sn: (String, Required) SN code of the device
+
+Response (BUDP):
+- data.deviceId: (String, Required) Device ID
+- data.deviceUUID: (String, Required) Device UUID
+- data.token: (String, Required) Network token for controlling this device
+- data.name: (String, Required) Product name
+- data.type: (String, Required) Device type (e.g., "Hub")
+- data.modelName: (String, Required) Model name (e.g., "YS7103-UC")
+
+2. Manage.delYoLinkDevice
+
+Purpose: Delete a device and revoke its token.
+
+Request (BDDP):
+- method: "Manage.delYoLinkDevice"
+- params.deviceId: (String, Required) Device ID or EUI
+
+Response (BUDP):
+- data.success: (Boolean, Required) Whether the deletion succeeded
+
+
+=== CHUNK: Manage.setCallbackURL & Manage.syncAccountDevice ===
+3. Manage.setCallbackURL
+
+Purpose: Set the callback URL for HTTP reporting (staging environment only).
+
+Request (BDDP):
+- method: "Manage.setCallbackURL"
+- params.url: (String, Optional) Custom callback URL; null = use current
+
+Response (BUDP):
+- data.id: (String, Required) CSID
+- data.url: (String, Required) Current callback URL ("MQTT" means using MQTT)
+- data.name: (String, Required) Customer name
+
+4. Manage.syncAccountDevice
+
+Purpose: Sync the list of YoSmart account devices via OAuth2 accessToken.
+
+Request (BDDP):
+- method: "Manage.syncAccountDevice"
+- params.accessToken: (String, Required) YoSmart OAuth2 access_token
+
+Response (BUDP) — List of devices:
+- data.list[*].deviceId: Device ID
+- data.list[*].deviceUUID: UUID
+- data.list[*].modelName: Model
+- data.list[*].token: Network token
+- data.list[*].name: Product name
+- data.list[*].type: Device type (e.g., Hub)
+
+
+=== CHUNK: Manage.retrieveYoLinkDevice & Manage.createAccessToken ===
+5. Manage.retrieveYoLinkDevice
+
+Purpose: Retrieve basic information of a YoLink device using its SN code.
+
+Request (BDDP):
+- method: "Manage.retrieveYoLinkDevice"
+- params.sn: (String, Required) SN code from QR label
+
+Response (BUDP) — List of matched devices:
+- data.list[*].deviceId: Device ID
+- data.list[*].name: Product name
+- data.list[*].deviceUDID: Unique Device ID
+- data.list[*].modelName: Model
+- data.list[*].zoomKey: Device's Zoom ID
+- data.list[*].token: Network token
+- data.list[*].type: Device type
+
+6. Manage.createAccessToken
+
+Purpose: Create a temporary access_token for API access.
+
+Request (BDDP):
+- method: "Manage.createAccessToken"
+- params.scope: (String, Required) Scope of access
+
+Response (BUDP):
+- data.access_token: (String, Required)
+- data.token_type: (String, Required) "bearer"
+- data.expires_in: (Number, Required) Expiration time in seconds
+- data.scope: (Array<String>, Required) Allowed API scopes

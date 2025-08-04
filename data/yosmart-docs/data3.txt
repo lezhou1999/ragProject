@@ -1,0 +1,154 @@
+=== CHUNK: Step 1: Get User Access Credentials (UAC) ===
+
+Step 1: Get User Access Credentials (UAC)
+
+Individual product users can create a UAC (User Access Credential) in the YoLink mobile app. This UAC allows users to authenticate and interact with their devices using the YoSmart Open API V2.
+
+To generate a UAC:
+- Open the YoLink app
+- Navigate to [Account] -> [Advanced Settings] -> [Personal Access Credentials]
+- Tap [+] to create a new UAC
+
+The UAC will provide a client ID (UAID) and secret key, which are required in the next step to obtain an access token.
+
+=== CHUNK: Step 2: Obtain Access Token via UAC ===
+
+Step 2: Obtain Access Token via UAC
+
+After obtaining the UAC credentials (UAID and secret key), users must request an access token using the YoSmart Open API V2 Token endpoint.
+
+To obtain the token, execute the following HTTP POST request using curl:
+
+curl -X POST \
+  -d "grant_type=client_credentials&client_id=${UAID}&client_secret=${Secret Key of PAC}" \
+  ${SVR_URL}/open/yolink/token
+
+Replace `${UAID}`, `${Secret Key of PAC}`, and `${SVR_URL}` with your actual UAC values and server URL. A successful response will return an access_token, which is required for all future API interactions.
+
+=== CHUNK: Step 3: Get Device List by Access Token ===
+
+Step 3: Get Device List by Access Token
+
+Once the access token is obtained, you can retrieve the list of devices linked to your YoLink account by calling the method `Home.getDeviceList`.
+
+Sample HTTP request using curl:
+
+curl --location --request POST 'https://api.yosmart.com/open/yolink/v2/api' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer ${access_token}' \
+--data-raw '{
+    "method": "Home.getDeviceList",
+    "time": ${timestamp}
+}'
+
+Sample response:
+
+{
+    "code": "000000",
+    "time": 1734595441905,
+    "msgid": 1734595441905,
+    "method": "Home.getDeviceList",
+    "desc": "Success",
+    "data": {
+        "devices": [
+            {
+                "deviceId": "****4c010003****",
+                "deviceUDID": "******0448304d67a9fd0b510b******",
+                "name": "3604-1",
+                "token": "******83F3A783AD7A6BADFE36******",
+                "type": "SmartRemoter",
+                "parentDeviceId": null,
+                "modelName": "YS3604-UC"
+            }
+        ]
+    }
+}
+
+The deviceId and token retrieved here are required for further control operations.
+
+=== CHUNK: Step 4: Control Devices with Device Token ===
+
+Step 4: Control Devices with Device Token
+
+Once you obtain the deviceId and token from Step 3, you can send control commands or queries to the target device using the YoSmart Open API. The method name depends on the device type, such as `Hub.getState`.
+
+Example HTTP request:
+
+curl --location --request POST 'https://api.yosmart.com/open/yolink/v2/api' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer ${access_token}' \
+--data-raw '{
+    "method": "Hub.getState",
+    "time": ${timestamp},
+    "targetDevice": "****4c160300****",
+    "token": "****b642-781e-450f-ba86-df28bdea****",
+    "params": {}
+}'
+
+Sample response:
+
+{
+    "code": "000000",
+    "time": 1572354630744,
+    "msgid": 1572354631,
+    "method": "Hub.getState",
+    "desc": "Success",
+    "data": {
+        "version": "0316",
+        "wifi": {
+            "ssid": "YoSmart",
+            "enable": true,
+            "ip": "192.168.1.164",
+            "gateway": "192.168.1.1",
+            "mask": "255.255.255.0"
+        },
+        "eth": {
+            "enable": false
+        }
+    }
+}
+
+=== CHUNK: Step 5: Get Home General Info ===
+
+Step 5: Get Home General Info
+
+You can also retrieve general home information (such as home ID) by calling the `Home.getGeneralInfo` method using your access token.
+
+Example curl request:
+
+curl --location --request POST 'https://api.yosmart.com/open/yolink/v2/api' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer ${access_token}' \
+--data-raw '{
+    "method": "Home.getGeneralInfo",
+    "time": ${timestamp}
+}'
+
+Sample response:
+
+{
+    "code": "000000",
+    "time": 1640596777941,
+    "msgid": 1640596777941,
+    "method": "Manage.getGeneralInfo",
+    "desc": "Success",
+    "data": {
+        "id": "****340cba25****"
+    }
+}
+
+The returned home ID is useful for MQTT subscriptions and event tracking.
+
+=== CHUNK: Step 6: Subscribe to Events via MQTT ===
+
+Step 6: Subscribe to Device Events via MQTT
+
+To receive real-time updates or event reports from your devices, you can subscribe to the device’s MQTT topic using the access_token.
+
+Example MQTT subscription command using mosquitto:
+
+mosquitto_sub -u ${access_token} -p 8003 -h ${API Host} -t yl-home/****340cba25****/+/report
+
+Replace `${access_token}` with your token, and `${API Host}` with the host address (e.g., api.yosmart.com). Replace the home ID in the topic accordingly.
+
+This enables your client to receive MQTT push notifications from YoSmart devices in real time.

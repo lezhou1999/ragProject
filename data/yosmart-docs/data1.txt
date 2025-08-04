@@ -1,0 +1,40 @@
+===CHUNK: What is YoSmart API  ===
+YoSmart API is the application programming interface provided by YoSmart Cloud. With the YoSmart API, you can control and access the data of devices produced by YoSmart Inc and other products under the YoLink brand.
+
+===CHUNK: Who Can Use the API  ===
+YoSmart API is available for both business partners and individual product users.
+
+For Business Partners:
+- CSID (Client Service ID) is provided as authentication credentials.
+- CSID allows access to large-scale devices and requesting access to devices from other individual users.
+- To access devices via CSID, you must first obtain the appropriate access rights.
+- Please contact YoSmart to request a CSID.
+
+For Individual Product Users:
+- Users can create a UAC (User Authentication Code) directly in the app to authenticate with the API.
+- UAC only allows access to devices under the associated user account.
+
+===CHUNK:How the API Works  ===
+YoSmart API is accessed via the internet and supports both HTTP and MQTT protocols.
+
+- The HTTP interface does not follow the RESTful standard, but instead uses a JSON-RPC format.
+- This enables unified handling of data packets using two formats:
+  - BDDP: Basic Downlink Data Packet
+  - BUDP: Basic Uplink Data Packet
+
+This design provides a consistent communication structure across both HTTP and MQTT protocols.
+
+===CHUNK: API Documentation Structure and Variables  ===
+The YoSmart API documentation is structured into the following modules:
+
+- Protocol: Describes how to access the API interface.
+- Methods - *: Lists all functions supported by the API and links to their DataPackets.
+- Methods - Account: Describes the DataPacket structure for managing user accounts and devices.
+- Methods - YoLink Devices: Describes DataPackets for YoLink-branded products.
+- Methods - YoSmart Devices: Describes DataPackets for YoSmart SmartHome products.
+
+Key variables used in the API:
+- API Host (US): api.yosmart.com
+- BDDP: Basic Downlink Data Packet
+- BUDP: Basic Uplink Data Packet
+

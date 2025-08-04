@@ -1,0 +1,379 @@
+=== CHUNK: Outlet.getState / setState / setDelayOn / setDelayOff ===
+
+Module: Outlet
+
+Method: Outlet.getState
+Description: Retrieve the current switch status and delay settings of the outlet.
+
+Request (BDDP):
+- method: "Outlet.getState"
+- targetDevice: String (Required) – Device ID of the Outlet
+- token: String (Required) – Network token of the Outlet
+
+Response (BUDP):
+- data.state: Boolean – true means ON, false means OFF
+- data.delay.on: Integer – Remaining Delay ON time in minutes (0 means OFF)
+- data.delay.off: Integer – Remaining Delay OFF time in minutes (0 means OFF)
+
+---
+
+Method: Outlet.setState
+Description: Set the ON/OFF state of the outlet.
+
+Request (BDDP):
+- method: "Outlet.setState"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.state: Boolean – true to turn ON, false to turn OFF
+
+Response (BUDP):
+- Same as Outlet.getState
+
+---
+
+Method: Outlet.setDelayOn
+Description: Set a delay to turn the outlet ON.
+
+Request (BDDP):
+- method: "Outlet.setDelayOn"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.time: Integer – Delay time in minutes (0 cancels the delay)
+
+Response (BUDP):
+- Same as Outlet.getState
+
+---
+
+Method: Outlet.setDelayOff
+Description: Set a delay to turn the outlet OFF.
+
+Request (BDDP):
+- method: "Outlet.setDelayOff"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.time: Integer – Delay time in minutes (0 cancels the delay)
+
+Response (BUDP):
+- Same as Outlet.getState or getSchedules
+
+=== CHUNK: Outlet.getSchedules / setSchedule / getVersion / startUpgrade ===
+
+Module: Outlet
+
+Method: Outlet.getSchedules  
+Description: Retrieve the list of configured ON/OFF schedules for the outlet.
+
+Request (BDDP):
+- method: "Outlet.getSchedules"
+- targetDevice: String (Required) – Device ID of the Outlet
+- token: String (Required) – Network token of the Outlet
+
+Response (BUDP):
+- data.Schedules[*].index: Integer – Index of this schedule (0–5)
+- data.Schedules[*].onTime: String – Start time in "HH:mm" format
+- data.Schedules[*].offTime: String – End time in "HH:mm" format
+- data.Schedules[*].weekMask: Integer – Bitmask of days (Sunday to Saturday)
+
+---
+
+Method: Outlet.setSchedule  
+Description: Set or update a scheduled ON/OFF time.
+
+Request (BDDP):
+- method: "Outlet.setSchedule"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.index: Integer – Index to update or insert (0–5 allowed)
+- params.onTime: String – Time to turn on, "HH:mm"
+- params.offTime: String – Time to turn off, "HH:mm"
+- params.weekMask: Integer – Bitmask of days (Sunday to Saturday)
+
+Response (BUDP):
+- [No specific fields defined]
+
+---
+
+Method: Outlet.getVersion  
+Description: Get firmware version information of the outlet device.
+
+Request (BDDP):
+- method: "Outlet.getVersion"
+- targetDevice: String (Required)
+- token: String (Required)
+
+Response (BUDP):
+- data.version: String – Current firmware version
+- data.newVersion.versionId: String (Optional) – New version ID
+- data.newVersion.versionCode: String (Optional) – New version code
+- data.newVersion.fileSize: String (Optional) – Firmware file size
+
+---
+
+Method: Outlet.startUpgrade  
+Description: Start firmware upgrade for the outlet.
+
+Request (BDDP):
+- method: "Outlet.startUpgrade"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.versionId: String (Required) – Version ID to upgrade to
+
+Response (BUDP):
+- data.isStarted: Boolean – Whether the upgrade process started successfully
+
+
+=== CHUNK: Outlet.Callbacks ===
+
+Module: Outlet
+
+Method: Callbacks (via HTTP or MQTT)
+
+Description: Real-time state push from Outlet device.
+
+Response (BUDP):
+- data.state: Boolean – Current outlet state; true means ON, false means OFF
+- data.delay.on: Integer – Delay ON time remaining
+- data.delay.off: Integer – Delay OFF time remaining
+
+
+=== CHUNK: RS485F.getState / setState ===
+
+Module: RS485F
+
+Method: RS485F.getState  
+Description: Retrieve the current communication configuration of the RS485F device.
+
+Request (BDDP):
+- method: "RS485F.getState"
+- targetDevice: String (Required) – Device ID of the RS485F
+- token: String (Required) – Network token
+
+Response (BUDP):
+- data.baudRate: Integer – RS485 Baud Rate (Default: 9600)
+- data.parity: String – Parity setting ["None", "Even", "Odd"] (Default: "None")
+- data.stopBits: Integer – Stop bit setting [0.5, 1, 1.5, 2] (Default: 1)
+
+---
+
+Method: RS485F.setState  
+Description: Configure RS485F serial communication parameters.
+
+Request (BDDP):
+- method: "RS485F.setState"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.baudRate: Integer – Baud rate (e.g. 9600)
+- params.parity: String – Parity ["None", "Even", "Odd"]
+- params.stopBits: Integer – Stop bits [0.5, 1, 1.5, 2]
+
+Response (BUDP):
+- Same as RS485F.getState
+
+
+=== CHUNK: RS485F.sendDatas / getVersion / startUpgrade ===
+
+Module: RS485F
+
+Method: RS485F.sendDatas  
+Description: Send raw byte buffer data over RS485 connection.
+
+Request (BDDP):
+- method: "RS485F.sendCode"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.datas: Buffer – Bytes to send
+
+Response (BUDP):
+- data.isSuccess: Boolean – Whether transmission succeeded
+
+---
+
+Method: RS485F.getVersion  
+Description: Get firmware version information of RS485F device.
+
+Request (BDDP):
+- method: "RS485F.getVersion"
+- targetDevice: String (Required)
+- token: String (Required)
+
+Response (BUDP):
+- data.version: String – Current firmware version
+- data.newVersion.versionId: String (Optional)
+- data.newVersion.versionCode: String (Optional)
+- data.newVersion.fileSize: String (Optional)
+
+---
+
+Method: RS485F.startUpgrade  
+Description: Initiate firmware upgrade for RS485F.
+
+Request (BDDP):
+- method: "RS485F.startUpgrade"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.versionId: String – Version ID to upgrade to
+
+Response (BUDP):
+- data.isStarted: Boolean – Whether upgrade was successfully started
+
+---
+
+Module: RS485F
+
+Method: Callback Report
+
+Description: Real-time data received through RS485, pushed via HTTP Callback API or MQTT.
+
+Response (BUDP):
+- data.type: String – Report type, fixed as "RS485Get"
+- data.datas: Buffer – Received data buffer in bytes
+
+=== CHUNK: Switch.getState / setState ===
+
+Module: Switch
+
+Method: Switch.getState  
+Description: Get the current state of each button (zone) on the switch.
+
+Request (BDDP):
+- method: "Switch.getState"
+- targetDevice: String (Required) – Device ID of the Switch
+- token: String (Required) – Network token
+
+Response (BUDP):
+- data.state: List<Boolean> – States of up to 3 zones; true for ON, false for OFF
+- data.delay.zone: Integer – Index of the button currently affected by delay
+- data.delay.on: Integer – Remaining delay ON time (minutes); 0 = disabled
+- data.delay.off: Integer – Remaining delay OFF time (minutes); 0 = disabled
+
+---
+
+Method: Switch.setState  
+Description: Set the ON/OFF state for a specific button (zone) or all buttons on the switch.
+
+Request (BDDP):
+- method: "Switch.setState"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.zone: Integer – Target zone index (0–2); 255 for all zones
+- params.state: Boolean – true = ON, false = OFF
+
+Response (BUDP):
+- Same as Switch.getState
+
+
+=== CHUNK: Switch.setDelayOn / setDelayOff ===
+
+Module: Switch
+
+Method: Switch.setDelayOn  
+Description: Schedule a delay to turn ON a specific zone of the switch.
+
+Request (BDDP):
+- method: "Switch.setDelayOn"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.zone: Integer – Zone index (0–2); default is 0
+- params.time: Integer – Delay time in minutes; 0 = cancel delay
+
+Response (BUDP):
+- Same as Switch.getState
+
+---
+
+Method: Switch.setDelayOff  
+Description: Schedule a delay to turn OFF a specific zone of the switch.
+
+Request (BDDP):
+- method: "Switch.setDelayOff"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.zone: Integer – Zone index (0–2); default is 0
+- params.time: Integer – Delay time in minutes; 0 = cancel delay
+
+Response (BUDP):
+- Same as Switch.getState
+
+
+=== CHUNK: Switch.getSchedules / setSchedule ===
+
+Module: Switch
+
+Method: Switch.getSchedules  
+Description: Retrieve the list of preset ON/OFF schedules for the switch.
+
+Request (BDDP):
+- method: "Switch.getSchedules"
+- targetDevice: String (Required) – Device ID of the Switch
+- token: String (Required) – Network token
+
+Response (BUDP):
+- data.Schedules[*].index: Integer – Index of this schedule record
+- data.Schedules[*].onTime: String – Time to turn ON, format: "HH:mm"
+- data.Schedules[*].offTime: String – Time to turn OFF, format: "HH:mm"
+- data.Schedules[*].zoneMask: Integer – Bitmask for affected zones (buttons)
+- data.Schedules[*].weekMask: Integer – Bitmask for active days (Sunday to Saturday)
+
+---
+
+Method: Switch.setSchedule  
+Description: Create or update a schedule for the switch.
+
+Request (BDDP):
+- method: "Switch.setSchedule"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.index: Integer – Index of the record (insert new or update existing; up to 6 records)
+- params.onTime: String – Time to turn ON, format: "HH:mm"
+- params.offTime: String – Time to turn OFF, format: "HH:mm"
+- params.zoneMask: Integer – Bitmask for affected zones
+- params.weekMask: Integer – Bitmask for active days
+
+Response (BUDP):
+- No specific response structure provided
+
+=== CHUNK: Switch.getVersion / startUpgrade/ Callback ===
+
+Module: Switch
+
+Method: Switch.getVersion  
+Description: Retrieve the current firmware version and latest available update.
+
+Request (BDDP):
+- method: "Switch.getVersion"
+- targetDevice: String (Required)
+- token: String (Required)
+
+Response (BUDP):
+- data.version: String – Current firmware version
+- data.newVersion.versionId: String (Optional) – ID of the latest version
+- data.newVersion.versionCode: String (Optional) – Code of the latest version
+- data.newVersion.fileSize: String (Optional) – Size of the update file
+
+---
+
+Method: Switch.startUpgrade  
+Description: Start firmware upgrade for the switch.
+
+Request (BDDP):
+- method: "Switch.startUpgrade"
+- targetDevice: String (Required)
+- token: String (Required)
+- params.versionId: String – Target firmware version ID
+
+Response (BUDP):
+- data.isStarted: Boolean – Whether the upgrade process has started successfully
+
+---
+
+Module: Switch
+
+Description: You can receive real-time switch status updates via MQTT topic or HTTP Callback.
+
+Response (BUDP):  
+(Same structure as from Switch.getState)
+- data.state: List<Boolean> – States of each zone; true for ON, false for OFF
+- data.delay.zone: Integer – Index of delay target zone
+- data.delay.on: Integer – Remaining ON delay time (minutes)
+- data.delay.off: Integer – Remaining OFF delay time (minutes)

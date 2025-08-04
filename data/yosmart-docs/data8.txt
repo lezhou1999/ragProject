@@ -1,0 +1,99 @@
+=== CHUNK: Open API V2 Overview and Limitations ===
+YoSmart Open API V2 Overview
+
+Open API V2 supports device interaction using UAC (User Access Credential) only. Business credential CSID is not supported in this version.
+
+Caution: UAC is a sensitive security key. It should not be shared with third-party applications or stored in public repositories.
+
+All API requests must be authenticated using a valid access token obtained from the UAC credentials. Users are advised to refresh access tokens regularly and avoid using expired tokens.
+
+=== CHUNK: HTTP Interface for Open API V2 ===
+
+Open API V2 – HTTP API Access
+
+Endpoint:
+POST /open/yolink/v2/api
+
+Request Headers:
+- Content-Type: application/json
+- Authorization: Bearer ${access_token} (required)
+
+Request Body:
+- Must follow the BDDP (Basic Downlink Data Packet) JSON structure
+
+Response Body:
+- Returns data in BUDP (Basic Uplink Data Packet) JSON format
+
+Token Acquisition:
+To obtain an access token, send a POST request to the token endpoint with UAC credentials. The response includes access_token, refresh_token, and expiration time.
+
+It is recommended to:
+- Check that access_token is not expired before making a request
+- Use the refresh_token to obtain a new access_token if needed
+
+=== CHUNK: MQTT Interface for Open API V2 ===
+
+Open API V2 – MQTT API Access
+
+YoSmart supports both TCP and WebSocket-based MQTT connections for Open API V2.
+
+Connection Information:
+- Host: ${API_Host}
+- TCP Port: 8003
+- WebSocket Port: 8004
+
+Authentication:
+- Username: ${access_token of UAC}
+- Password: (none)
+- Client ID: A general unique UUID
+
+Authorized MQTT Topics:
+- yl-home/${Home ID}/+/report: Receive device events (StatusChange, Alert, Report)
+- yl-home/${Home ID}/**/request: Publish commands using BDDP format
+- yl-home/${Home ID}/+/response: Receive responses in BUDP format
+
+Note:
+- UAC-based connections are limited to 5 active connections
+- No more than 10 new connections can be established within 5 minutes
+
+You can retrieve the Home ID by calling the `Home.getGeneralInfo` API method.
+
+=== CHUNK: Token Management Best Practices ===
+
+Open API V2 – OAuth2.0 Authentication
+
+YoSmart supports OAuth2.0 for authenticating and syncing account information using UAC.
+
+Token Endpoint:
+${API Host}/open/yolink/token
+
+To obtain an access token using UAC credentials:
+curl -X POST \
+  -d "grant_type=client_credentials&client_id=${UAID}&client_secret=${Secret Key of UAC}" \
+  ${API Host}/open/yolink/token
+
+To refresh an expired access token using refresh_token:
+curl -X POST \
+  -d "grant_type=refresh_token&client_id=${UAID}&refresh_token=${Refresh Token}" \
+  ${API Host}/open/yolink/token
+
+Always use HTTPS to protect sensitive credential information.
+
+
+=== CHUNK: Token Management Best Practices ===
+
+Best Practices for Token Management
+
+When using Open API V2 with UAC, it's important to securely manage your tokens:
+
+- Always check if the access_token is valid before making requests.
+- Prefer using the refresh_token to obtain a new access_token to extend your session securely.
+- Do not expose your UAC credentials (UAID and secret) in public repositories or shared environments.
+- If access_token expires, API calls will return an authorization error.
+
+The token response from the token endpoint includes:
+- access_token: Main token for API calls
+- refresh_token: Token used to request a new access_token
+- expires_in: Token validity period in seconds
+
+

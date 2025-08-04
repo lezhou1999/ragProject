@@ -1,0 +1,97 @@
+=== CHUNK: Step 1: Apply for CSID ===
+Step 1: Apply for a CSID
+
+To access and control devices through the YoSmart API, business users must first apply for a CSID (Client Service ID). The CSID serves as the core authentication credential that allows access to devices at scale. It also enables requesting access to devices owned by other individual users.
+
+To obtain a CSID, please contact YoSmart through their designated business registration or support channel.
+
+Note: Without a CSID, business users cannot proceed to bind or control devices using the API.
+=== CHUNK: Step 2: Bind YoLink Devices via API ===
+
+Step 2: Bind YoLink Devices
+
+Once a CSID is obtained, you can bind a YoLink device by calling the method `Manage.addYoLinkDevice` and passing in the device's serial number (SN), which is typically found on the device’s QR code label.
+
+Sample request (BDDP format):
+
+{
+  "method": "Manage.addYoLinkDevice",
+  "time": ${timestamp},
+  "params": {
+    "sn": "****060212B6481EBD4EC7696728****"
+  }
+}
+
+Sample response (BUDP format):
+
+{
+  "code": "000000",
+  "time": 1572322745846,
+  "msgid": 1572322745,
+  "method": "Manage.addYoLinkDevice",
+  "data": {
+    "deviceId": "****4c160300****",
+    "deviceUDID": "****ae3685504566af434e0f093c****",
+    "name": "YoLink Hub",
+    "token": "****b642-781e-450f-ba86-df28bdea****",
+    "type": "Hub"
+  }
+}
+
+This step links the device to your account and provides key information like the device ID and access token, which are required for further control.
+
+=== CHUNK: Step 3: Control Devices with Device Token ===
+
+Step 3: Control Devices Using the Device Token
+
+Once a YoLink device is successfully bound and the deviceId and token are retrieved, you can send control or query commands to the device. To do this, call a device-specific method such as `Hub.getState` using the device's ID and token as parameters.
+
+Sample request (BDDP format):
+
+{
+  "method": "Hub.getState",
+  "time": ${timestamp},
+  "targetDevice": "****4c160300****",
+  "token": "****b642-781e-450f-ba86-df28bdea****",
+  "params": {}
+}
+
+Sample response (BUDP format):
+
+{
+  "code": "000000",
+  "time": 1572354630744,
+  "msgid": 1572354631,
+  "method": "Hub.getState",
+  "data": {
+    "version": "0316",
+    "wifi": {
+      "ssid": "YoSmart",
+      "enable": true,
+      "ip": "192.168.1.164",
+      "gateway": "192.168.1.1",
+      "mask": "255.255.255.0"
+    },
+    "eth": {
+      "enable": false
+    }
+  }
+}
+
+The response provides the current state of the device, including firmware version, Wi-Fi status, and Ethernet status if applicable.
+
+=== CHUNK: Additional APIs and Developer Tools ===
+
+Additional Device Access & Developer Tools
+
+In addition to direct control using device tokens, you can retrieve the list of devices associated with a YoSmart account by calling `Manage.syncAccountDevice`.
+
+YoSmart also supports passive communication from devices via two options:
+- HTTP Callback API: Devices report status to your HTTP endpoint.
+- MQTT: Devices publish messages to a predefined MQTT report topic.
+
+To help you start quickly, YoSmart provides:
+- A simple YoSmart client demo written in Node.js.
+- A Postman test collection and environment (ENV) configuration file.
+
+Before using Postman, make sure to set your environment variables (ENVs) properly to include CSID, deviceId, token, and host.
