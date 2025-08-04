@@ -2,6 +2,7 @@ from retriever import retrieve_chunks
 from transformers import pipeline
 from openai import OpenAI
 from dotenv import load_dotenv
+import os
 # How to get the firmware version of a dimmer?
 # 初始化本地或 OpenAI QA 模型（根据你想要的方式）
 #qa_pipeline = pipeline("question-answering", model="deepset/roberta-base-squad2")
@@ -9,6 +10,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # 获取 API key
+
+#print("API Key loaded:", os.getenv("OPENAI_API_KEY"))
 api_key = os.getenv("OPENAI_API_KEY")
 
 client = OpenAI(api_key=api_key)

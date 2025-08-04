@@ -16,6 +16,9 @@ load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 
 
+
+
+
 TOP_K = 10 #返回前k个最相似的chunk
 
 #print("Current Working Directory:", os.getcwd())
@@ -23,7 +26,7 @@ TOP_K = 10 #返回前k个最相似的chunk
 
 #=== openai 客户端===
 # openai的 apikey可以存入全局变量
-client = OpenAI(api_key="your open-ai api key")
+client = OpenAI(api_key=api_key)
 
 #==  upload embedding model ===
 #bi_encoder = SentenceTransformer("all-MiniLM-L6-v2")  # 用于embedding

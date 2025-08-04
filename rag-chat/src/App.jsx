@@ -9,29 +9,29 @@ function App() {
   const [input, setInput] = useState("");
 
   const sendMessage = async () => {
-    if (!input.trim()) return;
+  if (!input.trim()) return;
 
-    const userInput = input;  // 临时保存用户输入
-    setInput("");
+  const userInput = input;  // 临时保存用户输入
+  setInput("");  // 立即清空输入框
 
-    // 前端加入用户输入
-    const newMessages = [...messages, { sender: "user", text: input }];
-    setMessages(newMessages);
+  // 前端加入用户输入
+  const newMessages = [...messages, { sender: "user", text: userInput }];
+  setMessages(newMessages);
 
-    try {
-      const response = await axios.post("http://localhost:8000/ask", {
-        query: input,   // 注意这里是 POST 的 body
-      });
+  try {
+    const response = await axios.post("http://localhost:9000/ask", {
+      query: userInput,   // ✅ 用 userInput，而不是 input
+    });
 
-      const botReply = response.data.answer || "No answer found.";
-      setMessages([...newMessages, { sender: "bot", text: botReply }]);
-    } catch (error) {
-      console.error(error);
-      setMessages([...newMessages,{ sender: "bot", text: "Error: could not reach backend." },
+    const botReply = response.data.answer || "No answer found.";
+    setMessages([...newMessages, { sender: "bot", text: botReply }]);
+  } catch (error) {
+    console.error(error);
+    setMessages([
+      ...newMessages,
+      { sender: "bot", text: "Error: could not reach backend." },
     ]);
-    }
-
-    //setInput("");
+  }
   };
 
   return (
