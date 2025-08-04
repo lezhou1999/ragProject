@@ -13,6 +13,9 @@ __pycache__/
 node_modules/
 dist/
 
-
+#py缓存中会有openai的apikey
 __pycache__/
 *.pyc
+
+# 忽略环境配置
+.env
